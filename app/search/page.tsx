@@ -1,31 +1,37 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { BottomNav } from "@/components/bottom-nav"
-import { MiniPlayer } from "@/components/mini-player"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Search, TrendingUp, Clock, Heart, MoreHorizontal } from "lucide-react"
-import { useMusic } from "@/components/music-context"
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { BottomNav } from "@/components/bottom-nav";
+import { MiniPlayer } from "@/components/mini-player";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Search, TrendingUp, Clock, Heart, MoreHorizontal } from "lucide-react";
+import { useMusic } from "@/components/music-context";
 
 export default function SearchPage() {
-  const { setCurrentTrack, setIsPlaying, toggleLike, likedTracks, setSearchQuery } = useMusic()
-  const [searchInput, setSearchInput] = useState("")
-  const [searchResults, setSearchResults] = useState<any[]>([])
-  const searchParams = useSearchParams()
-  const router = useRouter()
+  const {
+    setCurrentTrack,
+    setIsPlaying,
+    toggleLike,
+    likedTracks,
+    setSearchQuery,
+  } = useMusic();
+  const [searchInput, setSearchInput] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
-    const query = searchParams.get("q")
+    const query = searchParams.get("q");
     if (query && query !== searchInput) {
-      setSearchInput(query)
-      performSearch(query)
+      setSearchInput(query);
+      performSearch(query);
     }
-  }, [searchParams])
+  }, [searchParams]);
 
   const performSearch = (query: string) => {
     const mockResults = [
@@ -36,6 +42,8 @@ export default function SearchPage() {
         duration: "45:30",
         type: "playlist",
         cover: "/abstract-geometric-shapes.png",
+        audioUrl:
+          "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
       },
       {
         id: `${query}-result2`,
@@ -44,6 +52,8 @@ export default function SearchPage() {
         duration: "3:45",
         type: "track",
         cover: "/synthwave-album-cover-purple-neon.png",
+        audioUrl:
+          "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
       },
       {
         id: `${query}-result3`,
@@ -52,22 +62,30 @@ export default function SearchPage() {
         duration: "∞",
         type: "radio",
         cover: "/peaceful-sunset-album-cover-orange-pink.png",
+        audioUrl:
+          "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
       },
-    ]
-    setSearchResults(mockResults)
-  }
+    ];
+    setSearchResults(mockResults);
+  };
 
-  const trendingSearches = ["Synthwave", "Lo-fi Hip Hop", "Ambient", "Electronic", "Chill Out"]
-  const recentSearches = ["Neon Dreams", "Peaceful Sunset", "Workout Beats"]
+  const trendingSearches = [
+    "Synthwave",
+    "Lo-fi Hip Hop",
+    "Ambient",
+    "Electronic",
+    "Chill Out",
+  ];
+  const recentSearches = ["Neon Dreams", "Peaceful Sunset", "Workout Beats"];
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (searchInput.trim()) {
-      setSearchQuery(searchInput)
-      performSearch(searchInput)
-      router.push(`/search?q=${encodeURIComponent(searchInput)}`)
+      setSearchQuery(searchInput);
+      performSearch(searchInput);
+      router.push(`/search?q=${encodeURIComponent(searchInput)}`);
     }
-  }
+  };
 
   const handlePlayResult = (result: any) => {
     setCurrentTrack({
@@ -76,21 +94,22 @@ export default function SearchPage() {
       artist: result.artist,
       duration: result.duration,
       cover: result.cover,
-    })
-    setIsPlaying(true)
-  }
+      audioUrl: result.audioUrl,
+    });
+    setIsPlaying(true);
+  };
 
   const handleTrendingClick = (trend: string) => {
-    setSearchInput(trend)
-    setSearchQuery(trend)
-    performSearch(trend)
-    router.push(`/search?q=${encodeURIComponent(trend)}`)
-  }
+    setSearchInput(trend);
+    setSearchQuery(trend);
+    performSearch(trend);
+    router.push(`/search?q=${encodeURIComponent(trend)}`);
+  };
 
   const handleMoreOptions = (result: any) => {
-    console.log("[v0] More options for:", result.title)
+    console.log("[v0] More options for:", result.title);
     // In a real app, this would show a dropdown menu with options like "Add to playlist", "Share", etc.
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -130,23 +149,31 @@ export default function SearchPage() {
                       {result.artist} • {result.type}
                     </p>
                   </div>
-                  <span className="text-sm text-muted-foreground">{result.duration}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {result.duration}
+                  </span>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={(e) => {
-                      e.stopPropagation()
-                      toggleLike(result.id)
+                      e.stopPropagation();
+                      toggleLike(result.id);
                     }}
                   >
-                    <Heart className={`h-4 w-4 ${likedTracks.has(result.id) ? "fill-red-500 text-red-500" : ""}`} />
+                    <Heart
+                      className={`h-4 w-4 ${
+                        likedTracks.has(result.id)
+                          ? "fill-red-500 text-red-500"
+                          : ""
+                      }`}
+                    />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={(e) => {
-                      e.stopPropagation()
-                      handleMoreOptions(result)
+                      e.stopPropagation();
+                      handleMoreOptions(result);
                     }}
                   >
                     <MoreHorizontal className="h-4 w-4" />
@@ -207,5 +234,5 @@ export default function SearchPage() {
       <MiniPlayer />
       <BottomNav />
     </div>
-  )
+  );
 }

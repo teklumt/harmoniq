@@ -1,22 +1,28 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { MiniPlayer } from "@/components/mini-player"
-import { BottomNav } from "@/components/bottom-nav"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Play, Heart, MoreHorizontal, Search } from "lucide-react"
-import { useMusic } from "@/components/music-context"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { MiniPlayer } from "@/components/mini-player";
+import { BottomNav } from "@/components/bottom-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Play, Heart, MoreHorizontal, Search } from "lucide-react";
+import { useMusic } from "@/components/music-context";
 
 export default function HomePage() {
-  const { setCurrentTrack, setIsPlaying, toggleLike, likedTracks, setSearchQuery } = useMusic()
-  const [searchInput, setSearchInput] = useState("")
-  const router = useRouter()
+  const {
+    setCurrentTrack,
+    setIsPlaying,
+    toggleLike,
+    likedTracks,
+    setSearchQuery,
+  } = useMusic();
+  const [searchInput, setSearchInput] = useState("");
+  const router = useRouter();
 
   const featuredAlbums = [
     {
@@ -24,26 +30,47 @@ export default function HomePage() {
       title: "Synthwave Dreams",
       artist: "Neon Nights",
       cover: "/synthwave-album-cover-purple-neon.png",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     },
     {
       id: "2",
       title: "Peaceful Sunset",
       artist: "Calm Waves",
       cover: "/peaceful-sunset-album-cover-orange-pink.png",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     },
     {
       id: "3",
       title: "Gym Energy",
       artist: "Power Beats",
       cover: "/energetic-neon-gym-workout-album-green-blue.png",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     },
-  ]
+  ];
 
   const recentTracks = [
-    { id: "track1", title: "Electric Dreams", artist: "Synth Master", duration: "3:45" },
-    { id: "track2", title: "Ocean Breeze", artist: "Calm Waves", duration: "4:12" },
-    { id: "track3", title: "Power Up", artist: "Energy Boost", duration: "3:28" },
-  ]
+    {
+      id: "track1",
+      title: "Electric Dreams",
+      artist: "Synth Master",
+      duration: "3:45",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    },
+    {
+      id: "track2",
+      title: "Ocean Breeze",
+      artist: "Calm Waves",
+      duration: "4:12",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    },
+    {
+      id: "track3",
+      title: "Power Up",
+      artist: "Energy Boost",
+      duration: "3:28",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    },
+  ];
 
   const handlePlayAlbum = (album: (typeof featuredAlbums)[0]) => {
     const track = {
@@ -52,10 +79,10 @@ export default function HomePage() {
       artist: album.artist,
       duration: "3:45",
       cover: album.cover,
-    }
-    setCurrentTrack(track)
-    setIsPlaying(true)
-  }
+    };
+    setCurrentTrack(track);
+    setIsPlaying(true);
+  };
 
   const handlePlayTrack = (track: (typeof recentTracks)[0]) => {
     setCurrentTrack({
@@ -63,17 +90,18 @@ export default function HomePage() {
       title: track.title,
       artist: track.artist,
       duration: track.duration,
-    })
-    setIsPlaying(true)
-  }
+      audioUrl: track.audioUrl,
+    });
+    setIsPlaying(true);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (searchInput.trim()) {
-      setSearchQuery(searchInput)
-      router.push(`/search?q=${encodeURIComponent(searchInput)}`)
+      setSearchQuery(searchInput);
+      router.push(`/search?q=${encodeURIComponent(searchInput)}`);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -86,7 +114,9 @@ export default function HomePage() {
       <div className="relative overflow-hidden bg-background text-foreground">
         <div className="absolute inset-0 bg-[url('/abstract-music-wave-graphics-purple.png')] opacity-20 bg-cover bg-center" />
         <div className="relative px-6 py-16 text-center">
-          <h1 className="text-4xl font-bold mb-4 text-balance">Welcome to Harmoniq</h1>
+          <h1 className="text-4xl font-bold mb-4 text-balance">
+            Welcome to Harmoniq
+          </h1>
           <p className="text-lg opacity-90 mb-8 text-pretty">
             Discover your next favorite song from millions of tracks
           </p>
@@ -117,11 +147,17 @@ export default function HomePage() {
         <h2 className="text-2xl font-bold mb-6">Featured Albums</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredAlbums.map((album) => (
-            <Card key={album.id} className="group cursor-pointer hover:shadow-lg transition-all duration-300">
+            <Card
+              key={album.id}
+              className="group cursor-pointer hover:shadow-lg transition-all duration-300"
+            >
               <CardContent className="p-0">
                 <div className="relative">
                   <img
-                    src={album.cover || "/placeholder.svg?height=300&width=300&query=album cover"}
+                    src={
+                      album.cover ||
+                      "/placeholder.svg?height=300&width=300&query=album cover"
+                    }
                     alt={album.title}
                     className="w-full aspect-square object-cover rounded-t-lg"
                   />
@@ -134,7 +170,9 @@ export default function HomePage() {
                   </Button>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg mb-1 text-balance">{album.title}</h3>
+                  <h3 className="font-semibold text-lg mb-1 text-balance">
+                    {album.title}
+                  </h3>
                   <p className="text-muted-foreground">{album.artist}</p>
                 </div>
               </CardContent>
@@ -148,7 +186,10 @@ export default function HomePage() {
         <h2 className="text-2xl font-bold mb-6">Recently Played</h2>
         <div className="space-y-3">
           {recentTracks.map((track) => (
-            <div key={track.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+            <div
+              key={track.id}
+              className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+            >
               <Button
                 variant="ghost"
                 size="icon"
@@ -161,9 +202,19 @@ export default function HomePage() {
                 <h4 className="font-medium">{track.title}</h4>
                 <p className="text-sm text-muted-foreground">{track.artist}</p>
               </div>
-              <span className="text-sm text-muted-foreground">{track.duration}</span>
-              <Button variant="ghost" size="icon" onClick={() => toggleLike(track.id)}>
-                <Heart className={`h-4 w-4 ${likedTracks.has(track.id) ? "fill-red-500 text-red-500" : ""}`} />
+              <span className="text-sm text-muted-foreground">
+                {track.duration}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => toggleLike(track.id)}
+              >
+                <Heart
+                  className={`h-4 w-4 ${
+                    likedTracks.has(track.id) ? "fill-red-500 text-red-500" : ""
+                  }`}
+                />
               </Button>
               <Button variant="ghost" size="icon">
                 <MoreHorizontal className="h-4 w-4" />
@@ -176,5 +227,5 @@ export default function HomePage() {
       <MiniPlayer />
       <BottomNav />
     </div>
-  )
+  );
 }
