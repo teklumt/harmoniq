@@ -1,83 +1,151 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, useRef, useEffect, type ReactNode } from "react"
+import {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  type ReactNode,
+} from "react";
 
 interface Track {
-  id: string
-  title: string
-  artist: string
-  duration: string
-  cover?: string
-  album?: string
-  audioUrl?: string
+  id: string;
+  title: string;
+  artist?: string;
+  duration: string;
+  cover?: string;
+  album?: string;
+  audioUrl?: string;
 }
 
 interface MusicContextType {
-  currentTrack: Track | null
-  isPlaying: boolean
-  queue: Track[]
-  searchQuery: string
-  setCurrentTrack: (track: Track) => void
-  setIsPlaying: (playing: boolean) => void
-  addToQueue: (track: Track) => void
-  setSearchQuery: (query: string) => void
-  playNext: () => void
-  playPrevious: () => void
-  toggleLike: (trackId: string) => void
-  likedTracks: Set<string>
-  currentTime: number
-  duration: number
-  volume: number
-  setVolume: (volume: number) => void
-  seekTo: (time: number) => void
+  currentTrack: Track | null;
+  isPlaying: boolean;
+  queue: Track[];
+  searchQuery: string;
+  setCurrentTrack: (track: Track) => void;
+  setIsPlaying: (playing: boolean) => void;
+  addToQueue: (track: Track) => void;
+  setSearchQuery: (query: string) => void;
+  playNext: () => void;
+  playPrevious: () => void;
+  toggleLike: (trackId: string) => void;
+  likedTracks: Set<string>;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  setVolume: (volume: number) => void;
+  seekTo: (time: number) => void;
+  playTrack: (track: Track) => void;
 }
 
-const MusicContext = createContext<MusicContextType | undefined>(undefined)
+const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 export function MusicProvider({ children }: { children: ReactNode }) {
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [queue, setQueue] = useState<Track[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [likedTracks, setLikedTracks] = useState<Set<string>>(new Set())
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(75)
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [queue, setQueue] = useState<Track[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [likedTracks, setLikedTracks] = useState<Set<string>>(new Set());
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(75);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const playPromiseRef = useRef<Promise<void> | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playPromiseRef = useRef<Promise<void> | null>(null);
+
+  const playTrack = (track: Track) => {
+    setQueue((prevQueue) => {
+      if (!prevQueue.find((t) => t.id === track.id)) {
+        return [...prevQueue, track];
+      }
+      return prevQueue;
+    });
+    setCurrentTrack(track);
+    setIsPlaying(true);
+  };
+
+  const playNext = () => {
+    if (queue.length === 0) return;
+    if (!currentTrack) {
+      setCurrentTrack(queue[0]);
+      setIsPlaying(true);
+      return;
+    }
+    const currentIndex = queue.findIndex((t) => t.id === currentTrack.id);
+    const nextIndex = (currentIndex + 1) % queue.length;
+    setCurrentTrack(queue[nextIndex]);
+    setIsPlaying(true);
+  };
+
+  const playPrevious = () => {
+    if (queue.length === 0) return;
+    if (!currentTrack) {
+      setCurrentTrack(queue[0]);
+      setIsPlaying(true);
+      return;
+    }
+    const currentIndex = queue.findIndex((t) => t.id === currentTrack.id);
+    const prevIndex = (currentIndex - 1 + queue.length) % queue.length;
+    setCurrentTrack(queue[prevIndex]);
+    setIsPlaying(true);
+  };
+
+  const addToQueue = (track: Track) => {
+    setQueue((prevQueue) => [...prevQueue, track]);
+  };
+
+  const toggleLike = (trackId: string) => {
+    setLikedTracks((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(trackId)) {
+        newSet.delete(trackId);
+      } else {
+        newSet.add(trackId);
+      }
+      return newSet;
+    });
+  };
+
+  const seekTo = (time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      audioRef.current = new Audio()
-      audioRef.current.volume = volume / 100
+      audioRef.current = new Audio();
+      audioRef.current.volume = volume / 100;
 
-      const audio = audioRef.current
+      const audio = audioRef.current;
 
-      const handleTimeUpdate = () => setCurrentTime(audio.currentTime)
-      const handleDurationChange = () => setDuration(audio.duration)
+      const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+      const handleDurationChange = () => setDuration(audio.duration);
       const handleEnded = () => {
-        setIsPlaying(false)
-        playNext()
-      }
+        setIsPlaying(false);
+        playNext();
+      };
       const handleError = (e: Event) => {
-        console.log("[v0] Audio error:", e)
-        setIsPlaying(false)
-      }
+        console.log("[v0] Audio error:", e);
+        setIsPlaying(false);
+      };
 
-      audio.addEventListener("timeupdate", handleTimeUpdate)
-      audio.addEventListener("durationchange", handleDurationChange)
-      audio.addEventListener("ended", handleEnded)
-      audio.addEventListener("error", handleError)
+      audio.addEventListener("timeupdate", handleTimeUpdate);
+      audio.addEventListener("durationchange", handleDurationChange);
+      audio.addEventListener("ended", handleEnded);
+      audio.addEventListener("error", handleError);
 
       return () => {
-        audio.removeEventListener("timeupdate", handleTimeUpdate)
-        audio.removeEventListener("durationchange", handleDurationChange)
-        audio.removeEventListener("ended", handleEnded)
-        audio.removeEventListener("error", handleError)
-      }
+        audio.removeEventListener("timeupdate", handleTimeUpdate);
+        audio.removeEventListener("durationchange", handleDurationChange);
+        audio.removeEventListener("ended", handleEnded);
+        audio.removeEventListener("error", handleError);
+      };
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -86,132 +154,142 @@ export function MusicProvider({ children }: { children: ReactNode }) {
           playPromiseRef.current
             .then(() => {
               if (audioRef.current && isPlaying) {
-                playPromiseRef.current = audioRef.current.play().catch((error) => {
-                  console.log("[v0] Play error:", error)
-                  setIsPlaying(false)
-                })
+                playPromiseRef.current = audioRef.current
+                  .play()
+                  .catch((error) => {
+                    console.log("[v0] Play error:", error);
+                    setIsPlaying(false);
+                  });
               }
             })
             .catch(() => {
               if (audioRef.current && isPlaying) {
-                playPromiseRef.current = audioRef.current.play().catch((error) => {
-                  console.log("[v0] Play error:", error)
-                  setIsPlaying(false)
-                })
+                playPromiseRef.current = audioRef.current
+                  .play()
+                  .catch((error) => {
+                    console.log("[v0] Play error:", error);
+                    setIsPlaying(false);
+                  });
               }
-            })
+            });
         } else {
           playPromiseRef.current = audioRef.current.play().catch((error) => {
-            console.log("[v0] Play error:", error)
-            setIsPlaying(false)
-          })
+            console.log("[v0] Play error:", error);
+            setIsPlaying(false);
+          });
         }
       } else {
         if (playPromiseRef.current) {
           playPromiseRef.current
             .then(() => {
               if (audioRef.current) {
-                audioRef.current.pause()
+                audioRef.current.pause();
               }
             })
             .catch(() => {
               if (audioRef.current) {
-                audioRef.current.pause()
+                audioRef.current.pause();
               }
             })
             .finally(() => {
-              playPromiseRef.current = null
-            })
+              playPromiseRef.current = null;
+            });
         } else {
-          audioRef.current.pause()
+          audioRef.current.pause();
         }
       }
     }
-  }, [isPlaying])
+  }, [isPlaying]);
 
   useEffect(() => {
     if (audioRef.current && currentTrack) {
       if (playPromiseRef.current) {
         playPromiseRef.current
           .then(() => {
-            loadNewTrack()
+            loadNewTrack();
           })
           .catch(() => {
-            loadNewTrack()
-          })
+            loadNewTrack();
+          });
       } else {
-        loadNewTrack()
+        loadNewTrack();
       }
     }
 
     function loadNewTrack() {
       if (audioRef.current && currentTrack) {
-        audioRef.current.pause()
-        audioRef.current.src = currentTrack.audioUrl || "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
-        audioRef.current.load()
+        audioRef.current.pause();
+        audioRef.current.src =
+          currentTrack.audioUrl ||
+          "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+        audioRef.current.load();
 
         if (isPlaying) {
           const playWhenReady = () => {
             if (audioRef.current) {
-              playPromiseRef.current = audioRef.current.play().catch((error) => {
-                console.log("[v0] Play error after load:", error)
-                setIsPlaying(false)
-              })
+              playPromiseRef.current = audioRef.current
+                .play()
+                .catch((error) => {
+                  console.log("[v0] Play error after load:", error);
+                  setIsPlaying(false);
+                });
             }
-          }
+          };
 
           if (audioRef.current.readyState >= 2) {
-            playWhenReady()
+            playWhenReady();
           } else {
-            audioRef.current.addEventListener("canplay", playWhenReady, { once: true })
+            audioRef.current.addEventListener("canplay", playWhenReady, {
+              once: true,
+            });
           }
         }
       }
     }
-  }, [currentTrack])
+  }, [currentTrack]);
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = volume / 100
+      audioRef.current.volume = volume / 100;
     }
-  }, [volume])
+  }, [volume]);
 
-  const addToQueue = (track: Track) => {
-    setQueue((prev) => [...prev, track])
-  }
+  // const addToQueue = (track: Track) => {
+  //   setQueue((prev) => [...prev, track]);
+  // };
 
-  const playNext = () => {
-    if (queue.length > 0) {
-      const nextTrack = queue[0]
-      setCurrentTrack(nextTrack)
-      setQueue((prev) => prev.slice(1))
-    }
-  }
+  // const playNext = () => {
+  //   if (queue.length > 0) {
+  //     const nextTrack = queue[0];
+  //     setCurrentTrack(nextTrack);
+  //     setQueue((prev) => prev.slice(1));
+  //   }
+  // };
 
-  const playPrevious = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0
-    }
-  }
+  // const playPrevious = () => {
+  //   if (audioRef.current) {
+  //     audioRef.current.currentTime = 0;
+  //   }
+  // };
 
-  const toggleLike = (trackId: string) => {
-    setLikedTracks((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(trackId)) {
-        newSet.delete(trackId)
-      } else {
-        newSet.add(trackId)
-      }
-      return newSet
-    })
-  }
+  // const toggleLike = (trackId: string) => {
+  //   setLikedTracks((prev) => {
+  //     const newSet = new Set(prev);
+  //     if (newSet.has(trackId)) {
+  //       newSet.delete(trackId);
+  //     } else {
+  //       newSet.add(trackId);
+  //     }
+  //     return newSet;
+  //   });
+  // };
 
-  const seekTo = (time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time
-      setCurrentTime(time)
-    }
-  }
+  // const seekTo = (time: number) => {
+  //   if (audioRef.current) {
+  //     audioRef.current.currentTime = time;
+  //     setCurrentTime(time);
+  //   }
+  // };
 
   return (
     <MusicContext.Provider
@@ -233,19 +311,20 @@ export function MusicProvider({ children }: { children: ReactNode }) {
         volume,
         setVolume,
         seekTo,
+        playTrack,
       }}
     >
       {children}
     </MusicContext.Provider>
-  )
+  );
 }
 
 export function useMusic() {
-  const context = useContext(MusicContext)
+  const context = useContext(MusicContext);
   if (context === undefined) {
-    throw new Error("useMusic must be used within a MusicProvider")
+    throw new Error("useMusic must be used within a MusicProvider");
   }
-  return context
+  return context;
 }
 
-export const useMusicContext = useMusic
+export const useMusicContext = useMusic;
