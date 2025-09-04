@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Heart, MoreHorizontal, Music } from "lucide-react";
 import { useQueue } from "@/contexts/queue-context";
+import { useEffect, useState } from "react";
 
 const feedItems = [
   {
@@ -17,32 +18,11 @@ const feedItems = [
     mp3Url: "https://example.com/audio/summer-vibes.mp3",
     coverArt: "/album-cover-ocean-waves.png",
   },
-  {
-    id: 2,
-    title: "Acoustic Journey",
-    artist: "Mountain Folk",
-    genre: "Folk",
-    duration: "3:45",
-    uploadedBy: "Sarah Chen",
-    uploadedAt: "5 hours ago",
-    mp3Url: "https://example.com/audio/acoustic-journey.mp3",
-    coverArt: "/album-cover-mountain-high.png",
-  },
-  {
-    id: 3,
-    title: "Bass Drop",
-    artist: "Electronic Fusion",
-    genre: "EDM",
-    duration: "5:12",
-    uploadedBy: "BeatMaster",
-    uploadedAt: "1 day ago",
-    mp3Url: "https://example.com/audio/bass-drop.mp3",
-    coverArt: "/album-cover-nocturnal-vibes.jpg",
-  },
 ];
 
 export function MusicFeed() {
   const { controls, actions } = useQueue();
+  const [recentUploads, setRecentUploads] = useState([] as typeof feedItems);
 
   const handlePlayTrack = (item: (typeof feedItems)[0]) => {
     const track = {
@@ -64,6 +44,35 @@ export function MusicFeed() {
     });
   };
 
+  useEffect(() => {
+    async function fetchFavorites() {
+      try {
+        const response = await fetch("/api/music/feed?limit=20&offset=0");
+        const data = await response.json();
+        if (data.success && Array.isArray(data.items)) {
+          // Map API data to local format if needed
+          setRecentUploads(
+            data.items.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              artist: item.artist,
+              genre: item.genre,
+              duration: "--:--", // Replace with actual duration if available
+              addedAt: item.uploadedAt
+                ? new Date(item.uploadedAt).toLocaleDateString()
+                : "Recently",
+              mp3Url: item.mp3Url || item.url,
+              coverArt: "/placeholder-logo.png", // Replace with actual coverArt if available
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching favorites:", error);
+      }
+    }
+    fetchFavorites();
+  }, []);
+
   return (
     <Card>
       <CardHeader className="p-4 md:p-6">
@@ -71,7 +80,7 @@ export function MusicFeed() {
       </CardHeader>
       <CardContent className="p-4 md:p-6 pt-0">
         <div className="space-y-3 md:space-y-4">
-          {feedItems.map((item) => (
+          {recentUploads?.map((item) => (
             <div
               key={item.id}
               className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
@@ -118,6 +127,7 @@ export function MusicFeed() {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 md:h-9 md:w-9 p-0"
+                    onClick={() => handlePlayTrack(item)}
                   >
                     <Play className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>

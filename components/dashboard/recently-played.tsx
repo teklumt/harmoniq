@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Music } from "lucide-react";
 import { useQueue } from "@/contexts/queue-context";
+import { useEffect, useState } from "react";
 
 const recentSongs = [
   {
@@ -45,6 +46,9 @@ const recentSongs = [
 ];
 
 export function RecentlyPlayed() {
+  const [recentSongsFromAPI, setRecentSongsFromAPI] = useState(
+    [] as typeof recentSongs
+  );
   const { controls, actions } = useQueue();
 
   const handlePlayTrack = (song: (typeof recentSongs)[0]) => {
@@ -67,6 +71,35 @@ export function RecentlyPlayed() {
     });
   };
 
+  useEffect(() => {
+    async function fetchFavorites() {
+      try {
+        const response = await fetch("/api/music/feed?limit=20&offset=0");
+        const data = await response.json();
+        if (data.success && Array.isArray(data.items)) {
+          // Map API data to local format if needed
+          setRecentSongsFromAPI(
+            data.items.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              artist: item.artist,
+              genre: item.genre,
+              duration: "--:--", // Replace with actual duration if available
+              addedAt: item.uploadedAt
+                ? new Date(item.uploadedAt).toLocaleDateString()
+                : "Recently",
+              mp3Url: item.mp3Url || item.url,
+              coverArt: "/placeholder-logo.png", // Replace with actual coverArt if available
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching favorites:", error);
+      }
+    }
+    fetchFavorites();
+  }, []);
+
   return (
     <Card>
       <CardHeader className="p-4 md:p-6">
@@ -74,7 +107,7 @@ export function RecentlyPlayed() {
       </CardHeader>
       <CardContent className="p-4 md:p-6 pt-0">
         <div className="space-y-2 md:space-y-3">
-          {recentSongs.map((song) => (
+          {recentSongsFromAPI?.map((song) => (
             <div
               key={song.id}
               className="flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-lg hover:bg-muted/50 transition-colors"
