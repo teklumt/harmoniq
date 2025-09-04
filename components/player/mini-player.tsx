@@ -61,7 +61,7 @@ export function MiniPlayer({ className, onExpand }: MiniPlayerProps) {
             className="relative w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity"
           >
             <Image
-              src={getRandomUnsplashImage() || "/placeholder.svg"}
+              src={currentTrack.coverArt || "/placeholder.svg"}
               alt={`${currentTrack.title} cover`}
               fill
               className="object-cover"

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Music } from "lucide-react";
 import { useQueue } from "@/contexts/queue-context";
 import { useEffect, useState } from "react";
+import { getRandomUnsplashImage } from "@/utils/images";
 
 const recentSongs = [
   {
@@ -61,7 +62,7 @@ export function RecentlyPlayed() {
         Number.parseInt(song.duration.split(":")[0]) * 60 +
         Number.parseInt(song.duration.split(":")[1]),
       genre: song.genre,
-      coverArt: song.coverArt,
+      coverArt: getRandomUnsplashImage(),
     };
 
     actions.addTrack(track, {

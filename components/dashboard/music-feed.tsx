@@ -63,7 +63,7 @@ export function MusicFeed() {
                 ? new Date(item.uploadedAt).toLocaleDateString()
                 : "Recently",
               mp3Url: item.mp3Url || item.url,
-              coverArt: "/placeholder-logo.png", // Replace with actual coverArt if available
+              coverArt: getRandomUnsplashImage(),
             }))
           );
         }
@@ -87,9 +87,8 @@ export function MusicFeed() {
               className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
             >
               <div className="w-12 h-12 md:w-16 md:h-16 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                {/* <Music className="h-6 w-6 md:h-8 md:w-8 text-muted-foreground" /> */}
                 <Image
-                  src={getRandomUnsplashImage() || "/placeholder.svg"}
+                  src={item.coverArt || "/placeholder.svg"}
                   alt={`${item.title} cover`}
                   width={64}
                   height={64}

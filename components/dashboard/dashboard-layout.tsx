@@ -50,7 +50,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Music Player */}
-      <MusicPlayer />
+      {/* <MusicPlayer /> */}
     </div>
   );
 }

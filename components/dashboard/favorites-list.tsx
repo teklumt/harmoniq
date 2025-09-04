@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Heart, MoreHorizontal, Music, Shuffle } from "lucide-react";
 import { useQueue } from "@/contexts/queue-context";
-
+import { getRandomUnsplashImage } from "@/utils/images";
 const mockFavorites = [
   {
     id: 1,
@@ -103,7 +103,7 @@ export function FavoritesList() {
                 ? new Date(item.uploadedAt).toLocaleDateString()
                 : "Recently",
               mp3Url: item.mp3Url || item.url,
-              coverArt: "/placeholder-logo.png", // Replace with actual coverArt if available
+              coverArt: getRandomUnsplashImage(),
             }))
           );
         }
