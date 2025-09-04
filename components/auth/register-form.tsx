@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +9,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
+import { authClient } from "@/lib/auth-client" // Import BetterAuth client
+import { toast } from "sonner"
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -20,37 +21,44 @@ export function RegisterForm() {
     password: "",
     acceptTerms: false,
   })
+  const [error, setError] = useState<string | null>(null) // Added for error handling
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
 
-    try {
-      // Placeholder API call with logging
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-
-      const result = await response.json()
-      console.log("[v0] Register response:", result)
-
-      if (response.ok) {
-        // Redirect to dashboard on success
-        window.location.href = "/dashboard"
-      }
-    } catch (error) {
-      console.error("[v0] Register error:", error)
-    } finally {
-      setIsLoading(false)
+  await authClient.signUp.email(
+    {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    },
+    {
+      onRequest: () => {
+        setError(null); // clear old errors
+        toast("Creating your Harmoniq account… 🎶");
+      },
+      onSuccess: () => {
+        toast.success("Welcome to Harmoniq! Your account was created successfully.");
+        setIsLoading(false);
+        window.location.href = "/dashboard"; // redirect after signup
+      },
+      onError: (ctx) => {
+        console.error("[Harmoniq] Signup error:", ctx.error);
+        setError(ctx.error.message || "Failed to create account.");
+        toast.error(ctx.error.message || "Something went wrong.");
+        setIsLoading(false);
+      },
     }
-  }
+  );
+};
+
 
   const handleGoogleSignup = async () => {
-    console.log("[v0] Google OAuth signup initiated (stubbed)")
-    // Placeholder for Google OAuth
+    console.log("  Google OAuth signup initiated (stubbed)")
+    // Placeholder for Google OAuth (unchanged)
     alert("Google OAuth signup would be implemented here")
+    // Note: BetterAuth supports OAuth providers. You could use authClient.signIn.social({ provider: "google" }) here
   }
 
   return (
@@ -65,7 +73,7 @@ export function RegisterForm() {
           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
             <path
               fill="currentColor"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              d="M22.56 12.25c0-.78-.07-1.53-.20-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
             />
             <path
               fill="currentColor"
@@ -97,6 +105,9 @@ export function RegisterForm() {
 
       <CardContent className="pt-4 sm:pt-6 px-4 sm:px-6">
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          {error && (
+            <div className="text-red-500 text-sm">{error}</div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm sm:text-base">
               Full Name
