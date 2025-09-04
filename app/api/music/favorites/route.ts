@@ -1,100 +1,200 @@
-import { type NextRequest, NextResponse } from "next/server"
-
-// Mock favorites storage (in real app, this would be in database)
-let mockFavorites = [
-  { id: 1, userId: "user_1", trackId: "track_1", addedAt: new Date().toISOString() },
-  { id: 2, userId: "user_1", trackId: "track_2", addedAt: new Date().toISOString() },
-]
+import { type NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma/client";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get("userId") || "user_1" // Mock user ID
+    const { searchParams } = new URL(request.url);
+    const limit = Number.parseInt(searchParams.get("limit") || "20");
+    const offset = Number.parseInt(searchParams.get("offset") || "0");
 
-    console.log("[v0] Get favorites request:", {
-      userId,
-      timestamp: new Date().toISOString(),
-    })
+    const session = await auth.api.getSession({ headers: await headers() });
+    const userId = session?.user?.id;
 
-    const userFavorites = mockFavorites.filter((fav) => fav.userId === userId)
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    const favorites = await prisma.favorite.findMany({
+      where: { userId },
+      include: {
+        music: {
+          include: {
+            uploadedBy: { select: { name: true, id: true } },
+          },
+        },
+      },
+      skip: offset,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    });
+
+    const total = await prisma.favorite.count({ where: { userId } });
+
+    const items = favorites.map((fav) => ({
+      id: fav.music.id,
+      title: fav.music.title,
+      artist: fav.music.author,
+      genre: fav.music.genre,
+      mp3Url: fav.music.url,
+      uploadedBy: fav.music.uploadedBy?.name || "Unknown",
+      uploadedById: fav.music.uploadedBy?.id,
+      addedAt: fav.createdAt,
+      duration: "--:--", // Add actual duration calculation if available in Music model
+      coverArt: "/placeholder-logo.png", // Replace with actual cover art if available
+    }));
 
     return NextResponse.json({
       success: true,
-      favorites: userFavorites,
-      count: userFavorites.length,
-    })
+      items,
+      count: favorites.length,
+      pagination: {
+        limit,
+        offset,
+        total,
+        hasMore: offset + limit < total,
+      },
+    });
   } catch (error) {
-    console.error("[v0] Get favorites error:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+    console.error("[v0] Get favorites error:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { trackId, userId = "user_1" } = body
+    const session = await auth.api.getSession({ headers: await headers() });
+    const userId = session?.user?.id;
 
-    console.log("[v0] Add favorite request:", {
-      trackId,
-      userId,
-      timestamp: new Date().toISOString(),
-    })
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { trackId } = body;
+
+    if (!trackId) {
+      return NextResponse.json(
+        { success: false, message: "Track ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if track exists
+    const track = await prisma.music.findUnique({ where: { id: trackId } });
+    if (!track) {
+      return NextResponse.json(
+        { success: false, message: "Track not found" },
+        { status: 404 }
+      );
+    }
 
     // Check if already favorited
-    const existing = mockFavorites.find((fav) => fav.userId === userId && fav.trackId === trackId)
+    const existing = await prisma.favorite.findUnique({
+      where: { userId_musicId: { userId, musicId: trackId } },
+    });
+
     if (existing) {
-      return NextResponse.json({ success: false, message: "Track already in favorites" }, { status: 400 })
+      return NextResponse.json(
+        { success: false, message: "Track already in favorites" },
+        { status: 400 }
+      );
     }
 
-    const newFavorite = {
-      id: mockFavorites.length + 1,
-      userId,
-      trackId,
-      addedAt: new Date().toISOString(),
-    }
-
-    mockFavorites.push(newFavorite)
-
-    console.log("[v0] Favorite added:", newFavorite)
+    const favorite = await prisma.favorite.create({
+      data: {
+        userId,
+        musicId: trackId,
+      },
+      include: {
+        music: {
+          include: {
+            uploadedBy: { select: { name: true, id: true } },
+          },
+        },
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      favorite: newFavorite,
+      favorite: {
+        id: favorite.music.id,
+        title: favorite.music.title,
+        artist: favorite.music.author,
+        genre: favorite.music.genre,
+        mp3Url: favorite.music.url,
+        uploadedBy: favorite.music.uploadedBy?.name || "Unknown",
+        uploadedById: favorite.music.uploadedBy?.id,
+        addedAt: favorite.createdAt,
+        duration: "--:--",
+        coverArt: "/placeholder-logo.png",
+      },
       message: "Track added to favorites",
-    })
+    });
   } catch (error) {
-    console.error("[v0] Add favorite error:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+    console.error("[v0] Add favorite error:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const trackId = searchParams.get("trackId")
-    const userId = searchParams.get("userId") || "user_1"
+    const { searchParams } = new URL(request.url);
+    const trackId = searchParams.get("trackId");
 
-    console.log("[v0] Remove favorite request:", {
-      trackId,
-      userId,
-      timestamp: new Date().toISOString(),
-    })
+    const session = await auth.api.getSession({ headers: await headers() });
+    const userId = session?.user?.id;
 
-    const initialLength = mockFavorites.length
-    mockFavorites = mockFavorites.filter((fav) => !(fav.userId === userId && fav.trackId === trackId))
-
-    if (mockFavorites.length === initialLength) {
-      return NextResponse.json({ success: false, message: "Favorite not found" }, { status: 404 })
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "Authentication required" },
+        { status: 401 }
+      );
     }
 
-    console.log("[v0] Favorite removed:", { trackId, userId })
+    if (!trackId) {
+      return NextResponse.json(
+        { success: false, message: "Track ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const result = await prisma.favorite.deleteMany({
+      where: {
+        userId,
+        musicId: trackId,
+      },
+    });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { success: false, message: "Favorite not found" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
       message: "Track removed from favorites",
-    })
+    });
   } catch (error) {
-    console.error("[v0] Remove favorite error:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
+    console.error("[v0] Remove favorite error:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

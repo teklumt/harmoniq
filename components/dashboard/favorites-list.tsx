@@ -5,32 +5,89 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Heart, MoreHorizontal, Music, Shuffle } from "lucide-react";
 import { useQueue } from "@/contexts/queue-context";
-import { getRandomUnsplashImage } from "@/utils/images";
-const mockFavorites = [
-  {
-    id: 1,
-    title: "Midnight Dreams",
-    artist: "Luna Eclipse",
-    genre: "Electronic",
-    duration: "3:45",
-    addedAt: "2 days ago",
-    mp3Url: "https://example.com/audio/midnight-dreams.mp3",
-    coverArt: "/midnight-dreams-album-cover.png",
-  },
-];
+import { authClient } from "@/lib/auth-client";
+
+interface FavoriteTrack {
+  id: string;
+  title: string;
+  artist: string;
+  genre: string;
+  duration: string;
+  addedAt: string;
+  mp3Url: string;
+  coverArt: string;
+}
 
 export function FavoritesList() {
-  const [favorites, setFavorites] = useState([] as typeof mockFavorites);
+  const [session, setSession] = useState<any>(null);
+  const [error, setError] = useState<any>(null);
+  const userId = session?.user?.id;
+  const [favorites, setFavorites] = useState<FavoriteTrack[]>([]);
   const { controls, actions } = useQueue();
 
-  const handleRemoveFavorite = (id: number) => {
-    console.log("[v0] Removing favorite:", id);
-    setFavorites(favorites.filter((fav) => fav.id !== id));
+  useEffect(() => {
+    let isMounted = true;
+    authClient
+      .getSession()
+      .then((result: any) => {
+        if (isMounted) {
+          if ("data" in result) {
+            setSession(result.data);
+            setError(null);
+          } else if ("error" in result) {
+            setSession(null);
+            setError(result.error);
+          }
+        }
+      })
+      .catch((err: any) => {
+        if (isMounted) {
+          setSession(null);
+          setError(err);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleToggleFavorite = async (
+    musicId: string,
+    isFavorited: boolean
+  ) => {
+    if (!userId) return; // Prevent action if user is not authenticated
+    try {
+      if (isFavorited) {
+        // Remove favorite
+        const response = await fetch(
+          `/api/music/favorites?trackId=${musicId}`,
+          {
+            method: "DELETE",
+          }
+        );
+        if (response.ok) {
+          setFavorites(favorites.filter((fav) => fav.id !== musicId));
+        }
+      } else {
+        // Add favorite
+        const response = await fetch("/api/music/favorites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ trackId: musicId }),
+        });
+        if (response.ok) {
+          // Refetch favorites to ensure UI is in sync
+          fetchFavorites();
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
   };
 
   const handlePlayAll = () => {
     const tracks = favorites.map((fav) => ({
-      id: fav.id.toString(),
+      id: fav.id,
       title: fav.title,
       artist: fav.artist,
       mp3Url: fav.mp3Url,
@@ -49,12 +106,11 @@ export function FavoritesList() {
       tracks,
       coverArt: "/playlist-cover-chill-vibes.jpg",
       isPublic: false,
-      createdBy: "user", // Replace with actual user id or name if available
+      createdBy: userId || "user",
       totalDuration: tracks.reduce((sum, track) => sum + track.duration, 0),
       trackCount: tracks.length,
       createdAt: now,
       updatedAt: now,
-      // Add any other required fields with default or mock values if needed
     };
 
     actions.addPlaylist(playlist);
@@ -65,9 +121,9 @@ export function FavoritesList() {
     controls.toggleShuffle();
   };
 
-  const handlePlayTrack = (favorite: (typeof favorites)[0]) => {
+  const handlePlayTrack = (favorite: FavoriteTrack) => {
     const track = {
-      id: favorite.id.toString(),
+      id: favorite.id,
       title: favorite.title,
       artist: favorite.artist,
       mp3Url: favorite.mp3Url,
@@ -85,34 +141,90 @@ export function FavoritesList() {
     });
   };
 
-  useEffect(() => {
-    async function fetchFavorites() {
-      try {
-        const response = await fetch("/api/music/feed?limit=20&offset=0");
-        const data = await response.json();
-        if (data.success && Array.isArray(data.items)) {
-          // Map API data to local format if needed
-          setFavorites(
-            data.items.map((item: any) => ({
-              id: item.id,
-              title: item.title,
-              artist: item.artist,
-              genre: item.genre,
-              duration: "--:--", // Replace with actual duration if available
-              addedAt: item.uploadedAt
-                ? new Date(item.uploadedAt).toLocaleDateString()
-                : "Recently",
-              mp3Url: item.mp3Url || item.url,
-              coverArt: getRandomUnsplashImage(),
-            }))
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching favorites:", error);
+  const fetchFavorites = async () => {
+    if (!userId) return; // Prevent fetch if user is not authenticated
+    try {
+      const response = await fetch("/api/music/favorites");
+      const data = await response.json();
+      if (data.success && Array.isArray(data.items)) {
+        setFavorites(
+          data.items.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            artist: item.artist,
+            genre: item.genre,
+            duration: item.duration || "--:--",
+            addedAt: item.addedAt
+              ? new Date(item.addedAt).toLocaleDateString()
+              : "Recently",
+            mp3Url: item.mp3Url,
+            coverArt: item.coverArt || "/placeholder-logo.png",
+          }))
+        );
       }
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
     }
-    fetchFavorites();
-  }, []);
+  };
+
+  useEffect(() => {
+    if (!error) {
+      fetchFavorites();
+    }
+  }, [userId, error]);
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-4 md:pt-6">
+          <div className="text-center space-y-4">
+            <div className="h-12 w-12 md:h-16 md:w-16 mx-auto animate-pulse bg-muted rounded-full" />
+            <div className="space-y-2">
+              <h3 className="text-lg md:text-xl font-semibold">Loading...</h3>
+              <p className="text-muted-foreground text-sm md:text-base">
+                Please wait while we load your favorites.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!userId) {
+    return (
+      <Card>
+        <CardContent className="p-4 md:pt-6">
+          <div className="text-center space-y-4">
+            <Heart className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mx-auto" />
+            <div className="space-y-2">
+              <h3 className="text-lg md:text-xl font-semibold">
+                Please sign in
+              </h3>
+              <p className="text-muted-foreground text-sm md:text-base">
+                Sign in to view and manage your favorite songs.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto bg-transparent"
+              onClick={() =>
+                authClient.signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      window.location.href = "/login";
+                    },
+                  },
+                })
+              }
+            >
+              Sign In
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (favorites.length === 0) {
     return (
@@ -219,7 +331,7 @@ export function FavoritesList() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleRemoveFavorite(favorite.id)}
+                  onClick={() => handleToggleFavorite(favorite.id, true)}
                   className="text-accent hover:text-accent h-8 w-8 md:h-9 md:w-9 p-0"
                 >
                   <Heart className="h-3 w-3 md:h-4 md:w-4 fill-current" />
