@@ -30,22 +30,22 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  try {
-    const session = await auth.api.getSession({ headers: await headers() });
+  // try {
+  //   const session = await auth.api.getSession({ headers: await headers() });
 
-    if (!session?.user) {
-      // If no session → force login
-      redirect("/login");
-    } else {
-      // If logged in → force dashboard
-      if (typeof window !== "undefined" && window.location.pathname === "/login") {
-        redirect("/dashboard");
-      }
-    }
-  } catch (error) {
-    console.error("Failed to fetch session in RootLayout:", error);
-    redirect("/login"); // fallback to login
-  }
+  //   if (!session?.user) {
+  //     // If no session → force login
+  //     redirect("/login");
+  //   } else {
+  //     // If logged in → force dashboard
+  //     if (typeof window !== "undefined" && window.location.pathname === "/login") {
+  //       redirect("/dashboard");
+  //     }
+  //   }
+  // } catch (error) {
+  //   console.error("Failed to fetch session in RootLayout:", error);
+  //   redirect("/login"); // fallback to login
+  // }
 
   return (
     <html lang="en" suppressHydrationWarning>

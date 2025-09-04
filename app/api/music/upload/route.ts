@@ -1,5 +1,8 @@
 import { uploadSingleFile } from "@/utils/cloudinary";
 import { type NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma/client"; // Make sure this path is correct
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,54 +13,44 @@ export async function POST(request: NextRequest) {
     const description = formData.get("description") as string;
     const file = formData.get("file") as File;
 
-    const fileUrl = await uploadSingleFile(
-      file?.stream() as unknown as Buffer,
-      "music",
-      file?.type as string
-    );
-    // Log the upload attempt
-    console.log("[v0] Music upload attempt:", {
-      title,
-      artist,
-      genre,
-      description,
-      fileName: file?.name,
-      fileSize: file?.size,
-      timestamp: new Date().toISOString(),
-      userAgent: request.headers.get("user-agent"),
-    });
+    const session = await auth.api.getSession({ headers: await headers() });
+    const userId = session?.user.id;
 
-    // Simulate file processing
-    if (file && title && artist) {
-      const mockTrack = {
-        id: "track_" + Date.now(),
-        title,
-        artist,
-        genre,
-        description,
-        url: fileUrl,
-        duration: "3:45", // Mock duration
-        uploadedAt: new Date().toISOString(),
-      };
+    const uploadedById = formData.get("userId") as string;
 
-      console.log("[v0] Music upload successful:", mockTrack);
-
-      return NextResponse.json({
-        success: true,
-        track: mockTrack,
-        message: "Track uploaded successfully",
-      });
-    } else {
-      console.log("[v0] Music upload failed: Missing required fields");
-
+    if (!file || !title || !artist || !uploadedById) {
       return NextResponse.json(
         {
           success: false,
-          message: "Missing required fields: title, artist, and file",
+          message: "Missing required fields: title, artist, file, or userId",
         },
         { status: 400 }
       );
     }
+
+    const fileUrl = await uploadSingleFile(
+      file.stream() as unknown as Buffer,
+      "music",
+      file.type as string
+    );
+
+    // Save to DB
+    const track = await prisma.music.create({
+      data: {
+        title,
+        author: artist,
+        genre,
+        url: fileUrl,
+        uploadedById,
+        // Optionally add description if you add it to your schema
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      track,
+      message: "Track uploaded successfully",
+    });
   } catch (error) {
     console.error("[v0] Music upload error:", error);
 
