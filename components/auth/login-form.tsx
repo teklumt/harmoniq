@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,10 +9,15 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import Link from "next/link"
+import { authClient } from "@/lib/auth-client" 
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null) // Added for error handling
+  const router = useRouter() // Added for navigation
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,34 +25,38 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setError(null) // Clear previous errors
 
-    try {
-      // Placeholder API call with logging
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-
-      const result = await response.json()
-      console.log("[v0] Login response:", result)
-
-      if (response.ok) {
-        // Redirect to dashboard on success
-        window.location.href = "/dashboard"
+    await authClient.signIn.email(
+      {
+        email: formData.email,
+        password: formData.password,
+      },
+      {
+        onRequest: () => {
+          setIsLoading(true)
+          toast("Signing in...") // Notify user of sign-in attempt
+        },
+        onSuccess: () => {
+          setFormData({ email: "", password: "" }) // Reset form
+          toast.success("Signed in successfully!")
+          setIsLoading(false)
+          router.push("/dashboard") // Navigate to dashboard
+        },
+        onError: (ctx : any) => {
+          toast.error(ctx.error.message || "Failed to sign in")
+          setIsLoading(false)
+          setError(ctx.error.message || "Failed to sign in")
+        },
       }
-    } catch (error) {
-      console.error("[v0] Login error:", error)
-    } finally {
-      setIsLoading(false)
-    }
+    )
   }
 
   const handleGoogleLogin = async () => {
     console.log("[v0] Google OAuth login initiated (stubbed)")
     // Placeholder for Google OAuth
     alert("Google OAuth login would be implemented here")
+    // Note: BetterAuth supports OAuth providers. You could use authClient.signIn.social({ provider: "google" }) here
   }
 
   return (
@@ -95,6 +103,9 @@ export function LoginForm() {
 
       <CardContent className="pt-4 sm:pt-6 px-4 sm:px-6">
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          {error && (
+            <div className="text-red-500 text-sm">{error}</div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm sm:text-base">
               Email
@@ -118,7 +129,7 @@ export function LoginForm() {
               <Label htmlFor="password" className="text-sm sm:text-base">
                 Password
               </Label>
-              <Link href="/forgot-password" className="text-xs sm:text-sm text-primary hover:underline">
+              <Link href="/forgot-password" className="text-xs sm:tex-sm text-primary hover:underline">
                 Forgot password?
               </Link>
             </div>
