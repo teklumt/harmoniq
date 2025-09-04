@@ -6,7 +6,8 @@ import { Play, Heart, MoreHorizontal, Music } from "lucide-react";
 import { useQueue } from "@/contexts/queue-context";
 import { useEffect, useState } from "react";
 import { getRandomUnsplashImage } from "@/utils/images";
-import Image from "next/image";import { authClient } from "@/lib/auth-client";
+import Image from "next/image";
+import { authClient } from "@/lib/auth-client";
 
 interface FeedItem {
   id: string;
@@ -31,7 +32,8 @@ export function MusicFeed() {
 
   useEffect(() => {
     let isMounted = true;
-    authClient.getSession()
+    authClient
+      .getSession()
       .then((result: any) => {
         if (isMounted) {
           if ("data" in result) {
@@ -54,7 +56,10 @@ export function MusicFeed() {
     };
   }, []);
 
-  const handleToggleFavorite = async (trackId: string, isFavorited: boolean) => {
+  const handleToggleFavorite = async (
+    trackId: string,
+    isFavorited: boolean
+  ) => {
     if (!userId) {
       alert("Please sign in to favorite tracks.");
       return;
@@ -77,7 +82,10 @@ export function MusicFeed() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error(`Failed to ${isFavorited ? "remove" : "add"} favorite:`, errorData.message);
+        console.error(
+          `Failed to ${isFavorited ? "remove" : "add"} favorite:`,
+          errorData.message
+        );
         alert(`Error: ${errorData.message}`);
         return;
       }
@@ -104,7 +112,7 @@ export function MusicFeed() {
         Number.parseInt(item.duration.split(":")[0]) * 60 +
         Number.parseInt(item.duration.split(":")[1]),
       genre: item.genre,
-      coverArt: item.coverArt,
+      coverArt: item.coverArt || "/placeholder.svg",
     };
 
     actions.addTrack(track, {
@@ -132,7 +140,7 @@ export function MusicFeed() {
               ? new Date(item.uploadedAt).toLocaleDateString()
               : "Recently",
             mp3Url: item.mp3Url || item.url,
-            coverArt: item.coverArt || "/placeholder-logo.png",
+            coverArt: getRandomUnsplashImage(), // Placeholder or default image,
             isFavorited: false, // Default to false; can be updated if API provides favorite status
           }));
 
@@ -141,9 +149,11 @@ export function MusicFeed() {
             const favResponse = await fetch("/api/music/favorites");
             const favData = await favResponse.json();
             if (favData.success && Array.isArray(favData.items)) {
-              const favoriteIds = new Set(favData.items.map((fav: any) => fav.id));
+              const favoriteIds = new Set(
+                favData.items.map((fav: any) => fav.id)
+              );
               setRecentUploads(
-                uploads.map((item: { id: unknown; }) => ({
+                uploads.map((item: { id: unknown }) => ({
                   ...item,
                   isFavorited: favoriteIds.has(item.id),
                 }))
@@ -157,7 +167,9 @@ export function MusicFeed() {
         }
       } catch (error) {
         console.error("Error fetching feed:", error);
-        alert("An error occurred while fetching the music feed. Please try again.");
+        alert(
+          "An error occurred while fetching the music feed. Please try again."
+        );
       }
     }
     fetchFavorites();
@@ -176,9 +188,8 @@ export function MusicFeed() {
               className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
             >
               <div className="w-12 h-12 md:w-16 md:h-16 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                {/* <Music className="h-6 w-6 md:h-8 md:w-8 text-muted-foreground" /> */}
                 <Image
-                  src={getRandomUnsplashImage() || "/placeholder.svg"}
+                  src={item.coverArt || "/placeholder.svg"}
                   alt={`${item.title} cover`}
                   width={64}
                   height={64}
@@ -219,7 +230,9 @@ export function MusicFeed() {
                     className={`h-8 w-8 md:h-9 md:w-9 p-0 ${
                       item.isFavorited ? "text-accent" : "text-muted-foreground"
                     } hover:text-accent`}
-                    onClick={() => handleToggleFavorite(item.id, item.isFavorited)}
+                    onClick={() =>
+                      handleToggleFavorite(item.id, item.isFavorited)
+                    }
                   >
                     <Heart
                       className={`h-3 w-3 md:h-4 md:w-4 ${

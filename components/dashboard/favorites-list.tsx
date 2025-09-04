@@ -27,13 +27,14 @@ export function FavoritesList() {
 
   useEffect(() => {
     let isMounted = true;
-    authClient.getSession()
+    authClient
+      .getSession()
       .then((result: any) => {
         if (isMounted) {
-          if ('data' in result) {
+          if ("data" in result) {
             setSession(result.data);
             setError(null);
-          } else if ('error' in result) {
+          } else if ("error" in result) {
             setSession(null);
             setError(result.error);
           }
@@ -45,17 +46,25 @@ export function FavoritesList() {
           setError(err);
         }
       });
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const handleToggleFavorite = async (musicId: string, isFavorited: boolean) => {
+  const handleToggleFavorite = async (
+    musicId: string,
+    isFavorited: boolean
+  ) => {
     if (!userId) return; // Prevent action if user is not authenticated
     try {
       if (isFavorited) {
         // Remove favorite
-        const response = await fetch(`/api/music/favorites?trackId=${musicId}`, {
-          method: "DELETE",
-        });
+        const response = await fetch(
+          `/api/music/favorites?trackId=${musicId}`,
+          {
+            method: "DELETE",
+          }
+        );
         if (response.ok) {
           setFavorites(favorites.filter((fav) => fav.id !== musicId));
         }
@@ -171,9 +180,7 @@ export function FavoritesList() {
           <div className="text-center space-y-4">
             <div className="h-12 w-12 md:h-16 md:w-16 mx-auto animate-pulse bg-muted rounded-full" />
             <div className="space-y-2">
-              <h3 className="text-lg md:text-xl font-semibold">
-                Loading...
-              </h3>
+              <h3 className="text-lg md:text-xl font-semibold">Loading...</h3>
               <p className="text-muted-foreground text-sm md:text-base">
                 Please wait while we load your favorites.
               </p>
@@ -201,7 +208,15 @@ export function FavoritesList() {
             <Button
               variant="outline"
               className="w-full sm:w-auto bg-transparent"
-              onClick={() => authClient.signOut({ fetchOptions: { onSuccess: () => { window.location.href = "/login"; } } })}
+              onClick={() =>
+                authClient.signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      window.location.href = "/login";
+                    },
+                  },
+                })
+              }
             >
               Sign In
             </Button>
