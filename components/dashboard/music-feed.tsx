@@ -5,26 +5,94 @@ import { Button } from "@/components/ui/button";
 import { Play, Heart, MoreHorizontal, Music } from "lucide-react";
 import { useQueue } from "@/contexts/queue-context";
 import { useEffect, useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
-const feedItems = [
-  {
-    id: 1,
-    title: "Summer Vibes",
-    artist: "Tropical Beats",
-    genre: "Electronic",
-    duration: "4:23",
-    uploadedBy: "DJ Sunshine",
-    uploadedAt: "2 hours ago",
-    mp3Url: "https://example.com/audio/summer-vibes.mp3",
-    coverArt: "/album-cover-ocean-waves.png",
-  },
-];
+interface FeedItem {
+  id: string;
+  title: string;
+  artist: string;
+  genre: string;
+  duration: string;
+  uploadedBy: string;
+  uploadedAt: string;
+  mp3Url: string;
+  coverArt: string;
+  isFavorited: boolean;
+}
 
 export function MusicFeed() {
   const { controls, actions } = useQueue();
-  const [recentUploads, setRecentUploads] = useState([] as typeof feedItems);
+  const [recentUploads, setRecentUploads] = useState<FeedItem[]>([]);
+  const [session, setSession] = useState<any>(null);
+  const [error, setError] = useState<any>(null);
+  const userId = session?.user?.id;
 
-  const handlePlayTrack = (item: (typeof feedItems)[0]) => {
+  useEffect(() => {
+    let isMounted = true;
+    authClient.getSession()
+      .then((result: any) => {
+        if (isMounted) {
+          if ("data" in result) {
+            setSession(result.data);
+            setError(null);
+          } else if ("error" in result) {
+            setSession(null);
+            setError(result.error);
+          }
+        }
+      })
+      .catch((err: any) => {
+        if (isMounted) {
+          setSession(null);
+          setError(err);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleToggleFavorite = async (trackId: string, isFavorited: boolean) => {
+    if (!userId) {
+      alert("Please sign in to favorite tracks.");
+      return;
+    }
+    try {
+      let response;
+      if (isFavorited) {
+        // Remove favorite
+        response = await fetch(`/api/music/favorites?trackId=${trackId}`, {
+          method: "DELETE",
+        });
+      } else {
+        // Add favorite
+        response = await fetch("/api/music/favorites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ trackId }),
+        });
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error(`Failed to ${isFavorited ? "remove" : "add"} favorite:`, errorData.message);
+        alert(`Error: ${errorData.message}`);
+        return;
+      }
+
+      // Update UI optimistically
+      setRecentUploads(
+        recentUploads.map((item) =>
+          item.id === trackId ? { ...item, isFavorited: !isFavorited } : item
+        )
+      );
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      alert("An error occurred while updating favorites. Please try again.");
+    }
+  };
+
+  const handlePlayTrack = (item: FeedItem) => {
     const track = {
       id: item.id.toString(),
       title: item.title,
@@ -50,28 +118,48 @@ export function MusicFeed() {
         const response = await fetch("/api/music/feed?limit=20&offset=0");
         const data = await response.json();
         if (data.success && Array.isArray(data.items)) {
-          // Map API data to local format if needed
-          setRecentUploads(
-            data.items.map((item: any) => ({
-              id: item.id,
-              title: item.title,
-              artist: item.artist,
-              genre: item.genre,
-              duration: "--:--", // Replace with actual duration if available
-              addedAt: item.uploadedAt
-                ? new Date(item.uploadedAt).toLocaleDateString()
-                : "Recently",
-              mp3Url: item.mp3Url || item.url,
-              coverArt: "/placeholder-logo.png", // Replace with actual coverArt if available
-            }))
-          );
+          // Map API data to local format
+          const uploads = data.items.map((item: any) => ({
+            id: item.id.toString(),
+            title: item.title,
+            artist: item.artist,
+            genre: item.genre,
+            duration: item.duration || "--:--",
+            uploadedBy: item.uploadedBy || "Unknown",
+            uploadedAt: item.uploadedAt
+              ? new Date(item.uploadedAt).toLocaleDateString()
+              : "Recently",
+            mp3Url: item.mp3Url || item.url,
+            coverArt: item.coverArt || "/placeholder-logo.png",
+            isFavorited: false, // Default to false; can be updated if API provides favorite status
+          }));
+
+          // Optionally fetch favorite status if user is authenticated
+          if (userId) {
+            const favResponse = await fetch("/api/music/favorites");
+            const favData = await favResponse.json();
+            if (favData.success && Array.isArray(favData.items)) {
+              const favoriteIds = new Set(favData.items.map((fav: any) => fav.id));
+              setRecentUploads(
+                uploads.map((item: { id: unknown; }) => ({
+                  ...item,
+                  isFavorited: favoriteIds.has(item.id),
+                }))
+              );
+            } else {
+              setRecentUploads(uploads);
+            }
+          } else {
+            setRecentUploads(uploads);
+          }
         }
       } catch (error) {
-        console.error("Error fetching favorites:", error);
+        console.error("Error fetching feed:", error);
+        alert("An error occurred while fetching the music feed. Please try again.");
       }
     }
     fetchFavorites();
-  }, []);
+  }, [userId]);
 
   return (
     <Card>
@@ -119,9 +207,16 @@ export function MusicFeed() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 md:h-9 md:w-9 p-0"
+                    className={`h-8 w-8 md:h-9 md:w-9 p-0 ${
+                      item.isFavorited ? "text-accent" : "text-muted-foreground"
+                    } hover:text-accent`}
+                    onClick={() => handleToggleFavorite(item.id, item.isFavorited)}
                   >
-                    <Heart className="h-3 w-3 md:h-4 md:w-4" />
+                    <Heart
+                      className={`h-3 w-3 md:h-4 md:w-4 ${
+                        item.isFavorited ? "fill-current" : "fill-none"
+                      }`}
+                    />
                   </Button>
                   <Button
                     variant="ghost"
