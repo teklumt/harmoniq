@@ -1,9 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Play, Heart, MoreHorizontal, Music, Shuffle } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Play, Heart, MoreHorizontal, Music, Shuffle } from "lucide-react";
+import { useQueue } from "@/contexts/queue-context";
 
 const mockFavorites = [
   {
@@ -13,6 +14,8 @@ const mockFavorites = [
     genre: "Electronic",
     duration: "3:45",
     addedAt: "2 days ago",
+    mp3Url: "https://example.com/audio/midnight-dreams.mp3",
+    coverArt: "/midnight-dreams-album-cover.png",
   },
   {
     id: 2,
@@ -21,6 +24,8 @@ const mockFavorites = [
     genre: "Ambient",
     duration: "4:12",
     addedAt: "1 week ago",
+    mp3Url: "https://example.com/audio/ocean-waves.mp3",
+    coverArt: "/album-cover-ocean-waves.png",
   },
   {
     id: 3,
@@ -29,6 +34,8 @@ const mockFavorites = [
     genre: "Pop",
     duration: "3:28",
     addedAt: "2 weeks ago",
+    mp3Url: "https://example.com/audio/city-lights.mp3",
+    coverArt: "/album-cover-city-lights.jpg",
   },
   {
     id: 4,
@@ -37,6 +44,8 @@ const mockFavorites = [
     genre: "Folk",
     duration: "4:05",
     addedAt: "3 weeks ago",
+    mp3Url: "https://example.com/audio/mountain-high.mp3",
+    coverArt: "/album-cover-mountain-high.png",
   },
   {
     id: 5,
@@ -45,24 +54,76 @@ const mockFavorites = [
     genre: "EDM",
     duration: "3:52",
     addedAt: "1 month ago",
+    mp3Url: "https://example.com/audio/electric-pulse.mp3",
+    coverArt: "/album-cover-nocturnal-vibes.jpg",
   },
-]
+];
 
 export function FavoritesList() {
-  const [favorites, setFavorites] = useState(mockFavorites)
+  const [favorites, setFavorites] = useState(mockFavorites);
+  const { controls, actions } = useQueue();
 
   const handleRemoveFavorite = (id: number) => {
-    console.log("[v0] Removing favorite:", id)
-    setFavorites(favorites.filter((fav) => fav.id !== id))
-  }
+    console.log("[v0] Removing favorite:", id);
+    setFavorites(favorites.filter((fav) => fav.id !== id));
+  };
 
   const handlePlayAll = () => {
-    console.log("[v0] Playing all favorites")
-  }
+    const tracks = favorites.map((fav) => ({
+      id: fav.id.toString(),
+      title: fav.title,
+      artist: fav.artist,
+      mp3Url: fav.mp3Url,
+      duration:
+        Number.parseInt(fav.duration.split(":")[0]) * 60 +
+        Number.parseInt(fav.duration.split(":")[1]),
+      genre: fav.genre,
+      coverArt: fav.coverArt,
+    }));
+
+    const now = new Date().toISOString();
+    const playlist = {
+      id: "favorites",
+      name: "Liked Songs",
+      description: "Your favorite tracks",
+      tracks,
+      coverArt: "/playlist-cover-chill-vibes.jpg",
+      isPublic: false,
+      createdBy: "user", // Replace with actual user id or name if available
+      totalDuration: tracks.reduce((sum, track) => sum + track.duration, 0),
+      trackCount: tracks.length,
+      createdAt: now,
+      updatedAt: now,
+      // Add any other required fields with default or mock values if needed
+    };
+
+    actions.addPlaylist(playlist);
+  };
 
   const handleShuffle = () => {
-    console.log("[v0] Shuffling favorites")
-  }
+    handlePlayAll();
+    controls.toggleShuffle();
+  };
+
+  const handlePlayTrack = (favorite: (typeof favorites)[0]) => {
+    const track = {
+      id: favorite.id.toString(),
+      title: favorite.title,
+      artist: favorite.artist,
+      mp3Url: favorite.mp3Url,
+      duration:
+        Number.parseInt(favorite.duration.split(":")[0]) * 60 +
+        Number.parseInt(favorite.duration.split(":")[1]),
+      genre: favorite.genre,
+      coverArt: favorite.coverArt,
+    };
+
+    actions.addTrack(track, {
+      type: "playlist",
+      name: "Liked Songs",
+      id: "favorites",
+    });
+  };
 
   if (favorites.length === 0) {
     return (
@@ -71,25 +132,32 @@ export function FavoritesList() {
           <div className="text-center space-y-4">
             <Heart className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mx-auto" />
             <div className="space-y-2">
-              <h3 className="text-lg md:text-xl font-semibold">No favorites yet</h3>
+              <h3 className="text-lg md:text-xl font-semibold">
+                No favorites yet
+              </h3>
               <p className="text-muted-foreground text-sm md:text-base">
                 Start exploring music and add songs to your favorites!
               </p>
             </div>
-            <Button variant="outline" className="w-full sm:w-auto bg-transparent">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto bg-transparent"
+            >
               Discover Music
             </Button>
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
     <Card>
       <CardHeader className="p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <CardTitle className="text-lg md:text-xl">Liked Songs ({favorites.length})</CardTitle>
+          <CardTitle className="text-lg md:text-xl">
+            Liked Songs ({favorites.length})
+          </CardTitle>
           <div className="flex gap-2">
             <Button
               onClick={handleShuffle}
@@ -100,7 +168,11 @@ export function FavoritesList() {
               <Shuffle className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
               Shuffle
             </Button>
-            <Button onClick={handlePlayAll} size="sm" className="flex-1 sm:flex-none text-xs md:text-sm">
+            <Button
+              onClick={handlePlayAll}
+              size="sm"
+              className="flex-1 sm:flex-none text-xs md:text-sm"
+            >
               <Play className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
               Play All
             </Button>
@@ -124,12 +196,16 @@ export function FavoritesList() {
 
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                  <h3 className="font-medium truncate text-sm md:text-base">{favorite.title}</h3>
+                  <h3 className="font-medium truncate text-sm md:text-base">
+                    {favorite.title}
+                  </h3>
                   <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full w-fit">
                     {favorite.genre}
                   </span>
                 </div>
-                <p className="text-xs md:text-sm text-muted-foreground truncate">{favorite.artist}</p>
+                <p className="text-xs md:text-sm text-muted-foreground truncate">
+                  {favorite.artist}
+                </p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground sm:hidden">
                   <span>Added {favorite.addedAt}</span>
                   <span>•</span>
@@ -143,7 +219,12 @@ export function FavoritesList() {
               </div>
 
               <div className="flex items-center gap-1 shrink-0">
-                <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 p-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 md:h-9 md:w-9 p-0"
+                  onClick={() => handlePlayTrack(favorite)}
+                >
                   <Play className="h-3 w-3 md:h-4 md:w-4" />
                 </Button>
                 <Button
@@ -154,7 +235,11 @@ export function FavoritesList() {
                 >
                   <Heart className="h-3 w-3 md:h-4 md:w-4 fill-current" />
                 </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 p-0 hidden sm:flex">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 md:h-9 md:w-9 p-0 hidden sm:flex"
+                >
                   <MoreHorizontal className="h-3 w-3 md:h-4 md:w-4" />
                 </Button>
               </div>
@@ -163,5 +248,5 @@ export function FavoritesList() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
