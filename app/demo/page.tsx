@@ -347,7 +347,7 @@ export default function DemoPage() {
             </Card>
 
             {/* Full Player */}
-            {/* {showFullPlayer && (
+            {showFullPlayer && (
               <Card>
                 <CardHeader>
                   <CardTitle>Full Player</CardTitle>
@@ -358,7 +358,7 @@ export default function DemoPage() {
                   />
                 </CardContent>
               </Card>
-            )} */}
+            )}
           </div>
 
           {/* Sidebar */}
