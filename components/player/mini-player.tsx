@@ -1,41 +1,54 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { useQueue } from "@/contexts/queue-context"
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react"
-import { Slider } from "@/components/ui/slider"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import Image from "next/image"
+import { Button } from "@/components/ui/button";
+import { useQueue } from "@/contexts/queue-context";
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import Image from "next/image";
+import { getRandomUnsplashImage } from "@/utils/images";
 
 interface MiniPlayerProps {
-  className?: string
-  onExpand?: () => void
+  className?: string;
+  onExpand?: () => void;
 }
 
 export function MiniPlayer({ className, onExpand }: MiniPlayerProps) {
-  const { state, controls, currentTrack } = useQueue()
+  const { state, controls, currentTrack } = useQueue();
 
   const formatTime = (seconds: number) => {
-    if (!seconds || isNaN(seconds)) return "0:00"
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
+    if (!seconds || isNaN(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const handleSeek = (value: number[]) => {
-    controls.seek(value[0])
-  }
+    controls.seek(value[0]);
+  };
 
   const handleVolumeChange = (value: number[]) => {
-    controls.setVolume(value[0])
-  }
+    controls.setVolume(value[0]);
+  };
 
   const toggleMute = () => {
-    controls.setVolume(state.volume === 0 ? 1 : 0)
-  }
+    controls.setVolume(state.volume === 0 ? 1 : 0);
+  };
 
   if (!currentTrack) {
-    return null
+    return null;
   }
 
   return (
@@ -47,31 +60,31 @@ export function MiniPlayer({ className, onExpand }: MiniPlayerProps) {
             onClick={onExpand}
             className="relative w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity"
           >
-            {currentTrack.coverArt ? (
-              <Image
-                src={currentTrack.coverArt || "/placeholder.svg"}
-                alt={`${currentTrack.title} cover`}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Play className="h-5 w-5 text-muted-foreground" />
-              </div>
-            )}
+            <Image
+              src={getRandomUnsplashImage() || "/placeholder.svg"}
+              alt={`${currentTrack.title} cover`}
+              fill
+              className="object-cover"
+            />
           </button>
 
           <div className="min-w-0 flex-1">
             <button onClick={onExpand} className="text-left hover:underline">
-              <h4 className="text-sm font-medium truncate">{currentTrack.title}</h4>
-              <p className="text-xs text-muted-foreground truncate">{currentTrack.artist}</p>
+              <h4 className="text-sm font-medium truncate">
+                {currentTrack.title}
+              </h4>
+              <p className="text-xs text-muted-foreground truncate">
+                {currentTrack.artist}
+              </p>
             </button>
           </div>
         </div>
 
         {/* Progress Section */}
         <div className="hidden md:flex items-center gap-2 flex-1 max-w-md">
-          <span className="text-xs text-muted-foreground w-10 text-right">{formatTime(state.currentTime)}</span>
+          <span className="text-xs text-muted-foreground w-10 text-right">
+            {formatTime(state.currentTime)}
+          </span>
           <Slider
             value={[state.currentTime]}
             onValueChange={handleSeek}
@@ -79,7 +92,9 @@ export function MiniPlayer({ className, onExpand }: MiniPlayerProps) {
             step={1}
             className="cursor-pointer flex-1"
           />
-          <span className="text-xs text-muted-foreground w-10">{formatTime(state.duration)}</span>
+          <span className="text-xs text-muted-foreground w-10">
+            {formatTime(state.duration)}
+          </span>
         </div>
 
         {/* Controls */}
@@ -87,7 +102,12 @@ export function MiniPlayer({ className, onExpand }: MiniPlayerProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={controls.previous} disabled={state.items.length <= 1}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={controls.previous}
+                  disabled={state.items.length <= 1}
+                >
                   <SkipBack className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -106,7 +126,11 @@ export function MiniPlayer({ className, onExpand }: MiniPlayerProps) {
                   onClick={state.isPlaying ? controls.pause : controls.play}
                   className="w-8 h-8 rounded-full"
                 >
-                  {state.isPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3 ml-0.5" />}
+                  {state.isPlaying ? (
+                    <Pause className="h-3 w-3" />
+                  ) : (
+                    <Play className="h-3 w-3 ml-0.5" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -118,7 +142,12 @@ export function MiniPlayer({ className, onExpand }: MiniPlayerProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={controls.next} disabled={state.items.length <= 1}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={controls.next}
+                  disabled={state.items.length <= 1}
+                >
                   <SkipForward className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -134,7 +163,11 @@ export function MiniPlayer({ className, onExpand }: MiniPlayerProps) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="sm" onClick={toggleMute}>
-                    {state.volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    {state.volume === 0 ? (
+                      <VolumeX className="h-4 w-4" />
+                    ) : (
+                      <Volume2 className="h-4 w-4" />
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -171,5 +204,5 @@ export function MiniPlayer({ className, onExpand }: MiniPlayerProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
