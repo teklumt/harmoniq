@@ -33,6 +33,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Image from "next/image";
+import { getRandomUnsplashImage } from "@/utils/images";
 
 interface MusicPlayerProps {
   className?: string;
@@ -129,18 +130,12 @@ export function MusicPlayer({
         <div className="flex items-center gap-3">
           {/* Album Art */}
           <div className="relative w-12 h-12 bg-muted rounded-md overflow-hidden flex-shrink-0">
-            {currentTrack.coverArt ? (
-              <Image
-                src={currentTrack.coverArt || "/placeholder.svg"}
-                alt={`${currentTrack.title} cover`}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Play className="h-5 w-5 text-muted-foreground" />
-              </div>
-            )}
+            <Image
+              src={getRandomUnsplashImage() || "/placeholder.svg"}
+              alt={`${currentTrack.title} cover`}
+              fill
+              className="object-cover"
+            />
           </div>
 
           {/* Track Info */}
