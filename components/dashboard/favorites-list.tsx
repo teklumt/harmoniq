@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Heart, MoreHorizontal, Music, Shuffle } from "lucide-react";
@@ -60,7 +60,7 @@ const mockFavorites = [
 ];
 
 export function FavoritesList() {
-  const [favorites, setFavorites] = useState(mockFavorites);
+  const [favorites, setFavorites] = useState([] as typeof mockFavorites);
   const { controls, actions } = useQueue();
 
   const handleRemoveFavorite = (id: number) => {
@@ -124,6 +124,35 @@ export function FavoritesList() {
       id: "favorites",
     });
   };
+
+  useEffect(() => {
+    async function fetchFavorites() {
+      try {
+        const response = await fetch("/api/music/feed?limit=20&offset=0");
+        const data = await response.json();
+        if (data.success && Array.isArray(data.items)) {
+          // Map API data to local format if needed
+          setFavorites(
+            data.items.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              artist: item.artist,
+              genre: item.genre,
+              duration: "--:--", // Replace with actual duration if available
+              addedAt: item.uploadedAt
+                ? new Date(item.uploadedAt).toLocaleDateString()
+                : "Recently",
+              mp3Url: item.mp3Url || item.url,
+              coverArt: "/placeholder-logo.png", // Replace with actual coverArt if available
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching favorites:", error);
+      }
+    }
+    fetchFavorites();
+  }, []);
 
   if (favorites.length === 0) {
     return (
