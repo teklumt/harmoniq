@@ -118,7 +118,6 @@ export function MusicFeed() {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 md:h-9 md:w-9 p-0"
-                    onClick={() => handlePlayTrack(item)}
                   >
                     <Play className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
