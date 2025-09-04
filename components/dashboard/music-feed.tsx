@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Play, Heart, MoreHorizontal, Music } from "lucide-react";
 import { useQueue } from "@/contexts/queue-context";
 import { useEffect, useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import { getRandomUnsplashImage } from "@/utils/images";
+import Image from "next/image";import { authClient } from "@/lib/auth-client";
 
 interface FeedItem {
   id: string;
@@ -174,7 +175,14 @@ export function MusicFeed() {
               className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
             >
               <div className="w-12 h-12 md:w-16 md:h-16 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                <Music className="h-6 w-6 md:h-8 md:w-8 text-muted-foreground" />
+                {/* <Music className="h-6 w-6 md:h-8 md:w-8 text-muted-foreground" /> */}
+                <Image
+                  src={getRandomUnsplashImage() || "/placeholder.svg"}
+                  alt={`${item.title} cover`}
+                  width={64}
+                  height={64}
+                  className="object-cover h-12 w-12 md:h-16 md:w-16 rounded-2xl"
+                />
               </div>
 
               <div className="flex-1 min-w-0 space-y-1">
