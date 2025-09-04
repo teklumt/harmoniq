@@ -1,19 +1,44 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Play, Heart, Music, User, Disc } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Play, Heart, Music, User, Disc } from "lucide-react";
+import { useQueue } from "@/contexts/queue-context";
 
 const mockResults = {
   tracks: [
-    { id: 1, title: "Midnight Dreams", artist: "Luna Eclipse", genre: "Electronic", duration: "3:45" },
-    { id: 2, title: "Ocean Waves", artist: "Coastal Sounds", genre: "Ambient", duration: "4:12" },
-    { id: 3, title: "City Lights", artist: "Urban Melody", genre: "Pop", duration: "3:28" },
+    {
+      id: 1,
+      title: "Midnight Dreams",
+      artist: "Luna Eclipse",
+      genre: "Electronic",
+      duration: "3:45",
+      mp3Url: "https://example.com/audio/midnight-dreams.mp3",
+      coverArt: "/midnight-dreams-album-cover.png",
+    },
+    {
+      id: 2,
+      title: "Ocean Waves",
+      artist: "Coastal Sounds",
+      genre: "Ambient",
+      duration: "4:12",
+      mp3Url: "https://example.com/audio/ocean-waves.mp3",
+      coverArt: "/album-cover-ocean-waves.png",
+    },
+    {
+      id: 3,
+      title: "City Lights",
+      artist: "Urban Melody",
+      genre: "Pop",
+      duration: "3:28",
+      mp3Url: "https://example.com/audio/city-lights.mp3",
+      coverArt: "/album-cover-city-lights.jpg",
+    },
   ],
   artists: [
     { id: 1, name: "Luna Eclipse", genre: "Electronic", tracks: 12 },
@@ -21,38 +46,80 @@ const mockResults = {
     { id: 3, name: "Urban Melody", genre: "Pop", tracks: 15 },
   ],
   albums: [
-    { id: 1, title: "Night Sessions", artist: "Luna Eclipse", year: 2024, tracks: 10 },
-    { id: 2, title: "Ocean Dreams", artist: "Coastal Sounds", year: 2023, tracks: 8 },
-    { id: 3, title: "City Stories", artist: "Urban Melody", year: 2024, tracks: 12 },
+    {
+      id: 1,
+      title: "Night Sessions",
+      artist: "Luna Eclipse",
+      year: 2024,
+      tracks: 10,
+    },
+    {
+      id: 2,
+      title: "Ocean Dreams",
+      artist: "Coastal Sounds",
+      year: 2023,
+      tracks: 8,
+    },
+    {
+      id: 3,
+      title: "City Stories",
+      artist: "Urban Melody",
+      year: 2024,
+      tracks: 12,
+    },
   ],
-}
+};
 
 export function SearchInterface() {
-  const [query, setQuery] = useState("")
-  const [isSearching, setIsSearching] = useState(false)
-  const [hasSearched, setHasSearched] = useState(false)
+  const [query, setQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const { controls, actions } = useQueue();
 
   const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!query.trim()) return
+    e.preventDefault();
+    if (!query.trim()) return;
 
-    setIsSearching(true)
-    console.log("[v0] Searching for:", query)
+    setIsSearching(true);
+    console.log("[v0] Searching for:", query);
 
     // Simulate search delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    console.log("[v0] Search completed for:", query)
-    setHasSearched(true)
-    setIsSearching(false)
-  }
+    console.log("[v0] Search completed for:", query);
+    setHasSearched(true);
+    setIsSearching(false);
+  };
+
+  const handlePlayTrack = (track: (typeof mockResults.tracks)[0]) => {
+    const trackData = {
+      id: track.id.toString(),
+      title: track.title,
+      artist: track.artist,
+      mp3Url: track.mp3Url,
+      duration:
+        Number.parseInt(track.duration.split(":")[0]) * 60 +
+        Number.parseInt(track.duration.split(":")[1]),
+      genre: track.genre,
+      coverArt: track.coverArt,
+    };
+
+    actions.addTrack(trackData, {
+      type: "single",
+      name: track.title,
+      id: track.id.toString(),
+    });
+  };
 
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Search Form */}
       <Card>
         <CardContent className="p-4 md:pt-6">
-          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
+          <form
+            onSubmit={handleSearch}
+            className="flex flex-col sm:flex-row gap-2"
+          >
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -62,7 +129,11 @@ export function SearchInterface() {
                 className="pl-10"
               />
             </div>
-            <Button type="submit" disabled={isSearching || !query.trim()} className="w-full sm:w-auto">
+            <Button
+              type="submit"
+              disabled={isSearching || !query.trim()}
+              className="w-full sm:w-auto"
+            >
               {isSearching ? "Searching..." : "Search"}
             </Button>
           </form>
@@ -95,21 +166,35 @@ export function SearchInterface() {
                       <Music className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0 space-y-1">
-                      <h3 className="font-semibold truncate text-sm md:text-base">{track.title}</h3>
-                      <p className="text-muted-foreground truncate text-xs md:text-sm">{track.artist}</p>
-                      <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full">{track.genre}</span>
+                      <h3 className="font-semibold truncate text-sm md:text-base">
+                        {track.title}
+                      </h3>
+                      <p className="text-muted-foreground truncate text-xs md:text-sm">
+                        {track.artist}
+                      </p>
+                      <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full">
+                        {track.genre}
+                      </span>
                     </div>
                     <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 shrink-0">
-                      <span className="text-xs md:text-sm text-muted-foreground hidden sm:block">{track.duration}</span>
+                      <span className="text-xs md:text-sm text-muted-foreground hidden sm:block">
+                        {track.duration}
+                      </span>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="sm">
                           <Heart className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handlePlayTrack(track)}
+                        >
                           <Play className="h-4 w-4" />
                         </Button>
                       </div>
-                      <span className="text-xs text-muted-foreground sm:hidden">{track.duration}</span>
+                      <span className="text-xs text-muted-foreground sm:hidden">
+                        {track.duration}
+                      </span>
                     </div>
                   </div>
                 </CardContent>
@@ -126,11 +211,21 @@ export function SearchInterface() {
                       <User className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0 space-y-1">
-                      <h3 className="font-semibold truncate text-sm md:text-base">{artist.name}</h3>
-                      <p className="text-muted-foreground text-xs md:text-sm">{artist.genre}</p>
-                      <p className="text-xs md:text-sm text-muted-foreground">{artist.tracks} tracks</p>
+                      <h3 className="font-semibold truncate text-sm md:text-base">
+                        {artist.name}
+                      </h3>
+                      <p className="text-muted-foreground text-xs md:text-sm">
+                        {artist.genre}
+                      </p>
+                      <p className="text-xs md:text-sm text-muted-foreground">
+                        {artist.tracks} tracks
+                      </p>
                     </div>
-                    <Button variant="outline" size="sm" className="shrink-0 bg-transparent">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0 bg-transparent"
+                    >
                       Follow
                     </Button>
                   </div>
@@ -148,8 +243,12 @@ export function SearchInterface() {
                       <Disc className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0 space-y-1">
-                      <h3 className="font-semibold truncate text-sm md:text-base">{album.title}</h3>
-                      <p className="text-muted-foreground truncate text-xs md:text-sm">{album.artist}</p>
+                      <h3 className="font-semibold truncate text-sm md:text-base">
+                        {album.title}
+                      </h3>
+                      <p className="text-muted-foreground truncate text-xs md:text-sm">
+                        {album.artist}
+                      </p>
                       <p className="text-xs md:text-sm text-muted-foreground">
                         {album.year} • {album.tracks} tracks
                       </p>
@@ -165,5 +264,5 @@ export function SearchInterface() {
         </Tabs>
       )}
     </div>
-  )
+  );
 }

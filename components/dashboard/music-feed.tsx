@@ -1,6 +1,9 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Heart, MoreHorizontal, Music } from "lucide-react";
+import { useQueue } from "@/contexts/queue-context";
 
 const feedItems = [
   {
@@ -11,6 +14,8 @@ const feedItems = [
     duration: "4:23",
     uploadedBy: "DJ Sunshine",
     uploadedAt: "2 hours ago",
+    mp3Url: "https://example.com/audio/summer-vibes.mp3",
+    coverArt: "/album-cover-ocean-waves.png",
   },
   {
     id: 2,
@@ -20,6 +25,8 @@ const feedItems = [
     duration: "3:45",
     uploadedBy: "Sarah Chen",
     uploadedAt: "5 hours ago",
+    mp3Url: "https://example.com/audio/acoustic-journey.mp3",
+    coverArt: "/album-cover-mountain-high.png",
   },
   {
     id: 3,
@@ -29,10 +36,34 @@ const feedItems = [
     duration: "5:12",
     uploadedBy: "BeatMaster",
     uploadedAt: "1 day ago",
+    mp3Url: "https://example.com/audio/bass-drop.mp3",
+    coverArt: "/album-cover-nocturnal-vibes.jpg",
   },
 ];
 
 export function MusicFeed() {
+  const { controls, actions } = useQueue();
+
+  const handlePlayTrack = (item: (typeof feedItems)[0]) => {
+    const track = {
+      id: item.id.toString(),
+      title: item.title,
+      artist: item.artist,
+      mp3Url: item.mp3Url,
+      duration:
+        Number.parseInt(item.duration.split(":")[0]) * 60 +
+        Number.parseInt(item.duration.split(":")[1]),
+      genre: item.genre,
+      coverArt: item.coverArt,
+    };
+
+    actions.addTrack(track, {
+      type: "single",
+      name: item.title,
+      id: item.id.toString(),
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="p-4 md:p-6">
