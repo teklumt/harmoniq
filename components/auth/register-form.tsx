@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
 import { authClient } from "@/lib/auth-client" // Import BetterAuth client
 import { toast } from "sonner"
+import { signInWithGoogle } from "@/actions/auth-action";
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -54,12 +55,17 @@ const handleSubmit = async (e: React.FormEvent) => {
 };
 
 
-  const handleGoogleSignup = async () => {
-    console.log("  Google OAuth signup initiated (stubbed)")
-    // Placeholder for Google OAuth (unchanged)
-    alert("Google OAuth signup would be implemented here")
-    // Note: BetterAuth supports OAuth providers. You could use authClient.signIn.social({ provider: "google" }) here
-  }
+    const handleGoogleSignup = async () => {
+      setIsLoading(true);
+      try {
+        await signInWithGoogle();
+      } catch (error: any) {
+        toast.error( "Google sign-up failed", {
+          description: error.message || "Failed to sign up with Google."  ,
+        });
+        setIsLoading(false);
+      }
+    };
 
   return (
     <Card className="w-full">
