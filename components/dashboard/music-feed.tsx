@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Play, Heart, MoreHorizontal, Music } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Play, Heart, MoreHorizontal, Music } from "lucide-react";
 
 const feedItems = [
   {
@@ -30,7 +30,7 @@ const feedItems = [
     uploadedBy: "BeatMaster",
     uploadedAt: "1 day ago",
   },
-]
+];
 
 export function MusicFeed() {
   return (
@@ -51,10 +51,16 @@ export function MusicFeed() {
 
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                  <h3 className="font-semibold truncate text-sm md:text-base">{item.title}</h3>
-                  <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full w-fit">{item.genre}</span>
+                  <h3 className="font-semibold truncate text-sm md:text-base">
+                    {item.title}
+                  </h3>
+                  <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full w-fit">
+                    {item.genre}
+                  </span>
                 </div>
-                <p className="text-muted-foreground truncate text-xs md:text-sm">{item.artist}</p>
+                <p className="text-muted-foreground truncate text-xs md:text-sm">
+                  {item.artist}
+                </p>
                 <p className="text-xs md:text-sm text-muted-foreground">
                   <span className="sm:hidden">
                     By {item.uploadedBy} • {item.uploadedAt}
@@ -66,24 +72,40 @@ export function MusicFeed() {
               </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 shrink-0">
-                <span className="text-xs md:text-sm text-muted-foreground hidden sm:block">{item.duration}</span>
+                <span className="text-xs md:text-sm text-muted-foreground hidden sm:block">
+                  {item.duration}
+                </span>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 p-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 md:h-9 md:w-9 p-0"
+                  >
                     <Heart className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 p-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 md:h-9 md:w-9 p-0"
+                  >
                     <Play className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 p-0 hidden sm:flex">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 md:h-9 md:w-9 p-0 hidden sm:flex"
+                  >
                     <MoreHorizontal className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
                 </div>
-                <span className="text-xs text-muted-foreground sm:hidden">{item.duration}</span>
+                <span className="text-xs text-muted-foreground sm:hidden">
+                  {item.duration}
+                </span>
               </div>
             </div>
           ))}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
