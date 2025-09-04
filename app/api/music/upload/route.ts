@@ -14,9 +14,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File;
 
     const session = await auth.api.getSession({ headers: await headers() });
-    const userId = session?.user.id;
-
-    const uploadedById = formData.get("userId") as string;
+    const uploadedById = (formData.get("userId") as string) || session?.user.id;
 
     if (!file || !title || !artist || !uploadedById) {
       return NextResponse.json(
@@ -28,8 +26,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
     const fileUrl = await uploadSingleFile(
-      file.stream() as unknown as Buffer,
+      buffer,
       "music",
       file.type as string
     );
