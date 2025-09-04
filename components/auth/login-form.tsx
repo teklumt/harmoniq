@@ -12,6 +12,7 @@ import Link from "next/link"
 import { authClient } from "@/lib/auth-client" 
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { signInWithGoogle } from "@/actions/auth-action";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -53,11 +54,16 @@ export function LoginForm() {
   }
 
   const handleGoogleLogin = async () => {
-    console.log("[v0] Google OAuth login initiated (stubbed)")
-    // Placeholder for Google OAuth
-    alert("Google OAuth login would be implemented here")
-    // Note: BetterAuth supports OAuth providers. You could use authClient.signIn.social({ provider: "google" }) here
+  setIsLoading(true);
+  try {
+    await signInWithGoogle();
+  } catch (error: any) {
+    toast.error("Google sign-in failed", {
+      description: error.message || "Something went wrong. Please try again."
+    });
+    setIsLoading(false);
   }
+};
 
   return (
     <Card className="w-full">
