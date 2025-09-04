@@ -19,6 +19,7 @@ interface FeedItem {
   mp3Url: string;
   coverArt: string;
   isFavorited: boolean;
+  // random change
 }
 
 export function MusicFeed() {
