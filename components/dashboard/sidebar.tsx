@@ -6,7 +6,8 @@ import { Music, Home, Search, Upload, ListMusic, Heart, Settings, LogOut } from 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-
+import { authClient } from "@/lib/auth-client"
+ import { useRouter } from "next/navigation"
 const navigation = [
   { name: "Home", href: "/dashboard", icon: Home },
   { name: "Search", href: "/dashboard/search", icon: Search },
@@ -23,10 +24,18 @@ interface SidebarProps {
 export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname()
 
-  const handleLogout = () => {
-    console.log("[v0] User logout initiated")
-    // Placeholder logout logic
-    window.location.href = "/"
+  
+  const router = useRouter(); // For navigation after logout  
+  const handleLogout = async () => {
+    
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/login"); // redirect to login page
+        },
+      },
+});
+    
   }
 
   const handleLinkClick = () => {
