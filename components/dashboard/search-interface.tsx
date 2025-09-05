@@ -119,13 +119,23 @@ export function SearchInterface() {
     setIsSearching(false);
   };
 
+  // Helper to convert "mm:ss" to seconds (number)
+  function parseDuration(durationStr: string): number {
+    if (!durationStr || typeof durationStr !== "string") return 0;
+    const parts = durationStr.split(":");
+    if (parts.length !== 2) return 0;
+    const [min, sec] = parts.map(Number);
+    if (isNaN(min) || isNaN(sec)) return 0;
+    return min * 60 + sec;
+  }
+
   const handlePlayTrack = (track: (typeof mockResults.tracks)[0]) => {
     const trackData = {
       id: track.id.toString(),
       title: track.title,
       artist: track.artist,
       mp3Url: track.mp3Url,
-      duration: track.duration || "--:--",
+      duration: parseDuration(track.duration),
       genre: track.genre,
       coverArt: getRandomUnsplashImage(),
     };
