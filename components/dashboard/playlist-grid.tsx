@@ -14,7 +14,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Music, Play, MoreHorizontal, Download, Check } from "lucide-react";
+import {
+  Plus,
+  Music,
+  Play,
+  MoreHorizontal,
+  Download,
+  Check,
+} from "lucide-react";
 import { useQueue } from "@/contexts/queue-context";
 import { authClient } from "@/lib/auth-client";
 
@@ -50,7 +57,11 @@ interface FeedTrack {
 export function PlaylistGrid() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [isCreating, setIsCreating] = useState(false);
-  const [newPlaylist, setNewPlaylist] = useState({ name: "", description: "", trackIds: [] as string[] });
+  const [newPlaylist, setNewPlaylist] = useState({
+    name: "",
+    description: "",
+    trackIds: [] as string[],
+  });
   const [availableTracks, setAvailableTracks] = useState<FeedTrack[]>([]);
   const [session, setSession] = useState<any>(null);
   const [error, setError] = useState<any>(null);
@@ -59,7 +70,8 @@ export function PlaylistGrid() {
 
   useEffect(() => {
     let isMounted = true;
-    authClient.getSession()
+    authClient
+      .getSession()
       .then((result: any) => {
         if (isMounted) {
           if ("data" in result) {
@@ -94,15 +106,24 @@ export function PlaylistGrid() {
             name: p.name,
             description: p.description,
             tracks: p.tracks.length,
-            duration: formatDuration(p.tracks.reduce((sum: number, t: any) => sum + (t.music.duration || 0), 0)),
+            duration: formatDuration(
+              p.tracks.reduce(
+                (sum: number, t: any) =>
+                  sum +
+                  (t.music && typeof t.music.duration === "number"
+                    ? t.music.duration
+                    : 0),
+                0
+              )
+            ),
             trackList: p.tracks.map((t: any) => ({
-              id: t.music.id,
-              title: t.music.title,
-              artist: t.music.author,
-              mp3Url: t.music.url,
-              duration: t.music.duration || 0,
-              genre: t.music.genre || "Unknown",
-              coverArt: t.music.coverArt || "/placeholder-logo.png",
+              id: t.music?.id || "",
+              title: t.music?.title || "",
+              artist: t.music?.author || "",
+              mp3Url: t.music?.url || "",
+              duration: t.music?.duration || 0,
+              genre: t.music?.genre || "Unknown",
+              coverArt: t.music?.coverArt || "/placeholder-logo.png",
             })),
           }))
         );
@@ -154,7 +175,11 @@ export function PlaylistGrid() {
       const response = await fetch("/api/playlists", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newPlaylist.name, description: newPlaylist.description, trackIds: newPlaylist.trackIds }),
+        body: JSON.stringify({
+          name: newPlaylist.name,
+          description: newPlaylist.description,
+          trackIds: newPlaylist.trackIds,
+        }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -172,7 +197,11 @@ export function PlaylistGrid() {
     }
   };
 
-  const handleToggleTrack = async (playlistId: string, trackId: string, isInPlaylist: boolean) => {
+  const handleToggleTrack = async (
+    playlistId: string,
+    trackId: string,
+    isInPlaylist: boolean
+  ) => {
     if (!userId) {
       alert("Please sign in to modify playlists.");
       return;
@@ -185,7 +214,10 @@ export function PlaylistGrid() {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        console.error(`Failed to ${isInPlaylist ? "remove" : "add"} track:`, errorData.message);
+        console.error(
+          `Failed to ${isInPlaylist ? "remove" : "add"} track:`,
+          errorData.message
+        );
         alert(`Error: ${errorData.message}`);
         return;
       }
@@ -235,7 +267,9 @@ export function PlaylistGrid() {
           <div className="text-center space-y-4">
             <Music className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mx-auto" />
             <div className="space-y-2">
-              <h3 className="text-lg md:text-xl font-semibold">Please sign in</h3>
+              <h3 className="text-lg md:text-xl font-semibold">
+                Please sign in
+              </h3>
               <p className="text-muted-foreground text-sm md:text-base">
                 Sign in to view and manage your playlists.
               </p>
@@ -243,7 +277,15 @@ export function PlaylistGrid() {
             <Button
               variant="outline"
               className="w-full sm:w-auto bg-transparent"
-              onClick={() => authClient.signOut({ fetchOptions: { onSuccess: () => { window.location.href = "/login"; } } })}
+              onClick={() =>
+                authClient.signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      window.location.href = "/login";
+                    },
+                  },
+                })
+              }
             >
               Sign In
             </Button>
@@ -265,33 +307,48 @@ export function PlaylistGrid() {
           </DialogTrigger>
           <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-lg md:text-xl">Create New Playlist</DialogTitle>
+              <DialogTitle className="text-lg md:text-xl">
+                Create New Playlist
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreatePlaylist} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm md:text-base">Playlist Name</Label>
+                <Label htmlFor="name" className="text-sm md:text-base">
+                  Playlist Name
+                </Label>
                 <Input
                   id="name"
                   placeholder="Enter playlist name"
                   value={newPlaylist.name}
-                  onChange={(e) => setNewPlaylist({ ...newPlaylist, name: e.target.value })}
+                  onChange={(e) =>
+                    setNewPlaylist({ ...newPlaylist, name: e.target.value })
+                  }
                   required
                   className="text-sm md:text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm md:text-base">Description (Optional)</Label>
+                <Label htmlFor="description" className="text-sm md:text-base">
+                  Description (Optional)
+                </Label>
                 <Textarea
                   id="description"
                   placeholder="Describe your playlist..."
                   value={newPlaylist.description}
-                  onChange={(e) => setNewPlaylist({ ...newPlaylist, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewPlaylist({
+                      ...newPlaylist,
+                      description: e.target.value,
+                    })
+                  }
                   rows={3}
                   className="text-sm md:text-base resize-none"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm md:text-base">Add Tracks (Optional)</Label>
+                <Label className="text-sm md:text-base">
+                  Add Tracks (Optional)
+                </Label>
                 <div className="max-h-48 overflow-y-auto border rounded-md p-2">
                   {availableTracks.map((track) => (
                     <div
@@ -310,8 +367,12 @@ export function PlaylistGrid() {
                         <Music className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{track.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">{track.artist}</p>
+                        <p className="text-sm font-medium truncate">
+                          {track.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {track.artist}
+                        </p>
                       </div>
                       {newPlaylist.trackIds.includes(track.id) && (
                         <Check className="h-4 w-4 text-accent" />
