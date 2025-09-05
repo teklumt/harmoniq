@@ -1,6 +1,6 @@
 # Harmoniq - Music Streaming Service
 
-## Demo Video: https://drive.google.com/file/d/1-mH3xuCMTljQ2L1TH5N8cpKBRjYFj4PH/view?usp=sharing
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/b9ea7f02-bf41-44a2-b2f5-b6a401c97719" />
 
 ## Project Overview
 
@@ -97,6 +97,8 @@ utils/              # Utility functions
 
 ---
 
+
+## Demo Video: https://drive.google.com/file/d/1-mH3xuCMTljQ2L1TH5N8cpKBRjYFj4PH/view?usp=sharing
 
 - [Next.js](https://nextjs.org/)
 - [Prisma](https://www.prisma.io/)
