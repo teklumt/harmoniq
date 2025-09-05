@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await auth.api.getSession({ headers: headers() });
     const userId = session?.user?.id;
 
     if (!userId) {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     const playlistId = params.id;
     const body = await request.json();
-    const { trackId } = body;
+    const { trackId }: { trackId: string } = body;
 
     console.log("[v0] Add track to playlist request:", {
       playlistId,
@@ -85,9 +85,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         title: playlistTrack.music.title,
         artist: playlistTrack.music.author,
         mp3Url: playlistTrack.music.url,
-        duration: 0,
         genre: playlistTrack.music.genre || "Unknown",
-        coverArt: "/placeholder-logo.png",
       },
       message: "Track added to playlist",
     });
@@ -102,7 +100,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await auth.api.getSession({ headers: headers() });
     const userId = session?.user?.id;
 
     if (!userId) {
