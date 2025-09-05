@@ -1,5 +1,7 @@
 # Harmoniq - Music Streaming Service
 
+## Demo Video: https://drive.google.com/file/d/1-mH3xuCMTljQ2L1TH5N8cpKBRjYFj4PH/view?usp=sharing
+
 ## Project Overview
 
 **Harmoniq** is a modern music streaming platform that allows users to discover, upload, and share music. Users can create playlists, save favorite tracks, and connect with artists. The platform features a global music queue, playlist management, and seamless playback experience.
