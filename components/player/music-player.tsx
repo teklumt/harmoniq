@@ -208,7 +208,7 @@ export function MusicPlayer({
   }
 
   return (
-    <Card className={`p-6 ${className}`}>
+    <Card className={`p-6 hidden ${className}`}>
       <div className="space-y-4">
         {/* Track Info Section */}
         <div className="flex items-start gap-4">

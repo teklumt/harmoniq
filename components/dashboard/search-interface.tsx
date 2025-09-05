@@ -2,13 +2,15 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Play, Heart, Music, User, Disc } from "lucide-react";
 import { useQueue } from "@/contexts/queue-context";
+import Image from "next/image";
+import { getRandomUnsplashImage } from "@/utils/images";
 
 const mockResults = {
   tracks: [
@@ -76,17 +78,43 @@ export function SearchInterface() {
   const [hasSearched, setHasSearched] = useState(false);
   const { controls, actions } = useQueue();
 
+  const [tracksFromApi, setTracksFromApi] = useState<any[]>([]);
+  const [filteredTracks, setFilteredTracks] = useState<any[]>([]);
+  const [artistsFromTracks, setArtistsFromTracks] = useState<any[]>([]);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
 
     setIsSearching(true);
-    console.log("[v0] Searching for:", query);
+    // Filter tracks from API based on query
+    const lowerQuery = query.toLowerCase();
+    const results = tracksFromApi.filter(
+      (track) =>
+        (track.title && track.title.toLowerCase().includes(lowerQuery)) ||
+        (track.artist && track.artist.toLowerCase().includes(lowerQuery))
+    );
+    setFilteredTracks(results);
 
-    // Simulate search delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Extract unique artists from filtered tracks
+    const artistMap: {
+      [name: string]: { name: string; genre?: string; tracks: number };
+    } = {};
+    results.forEach((track) => {
+      if (track.artist) {
+        if (!artistMap[track.artist]) {
+          artistMap[track.artist] = {
+            name: track.artist,
+            genre: track.genre,
+            tracks: 1,
+          };
+        } else {
+          artistMap[track.artist].tracks += 1;
+        }
+      }
+    });
+    setArtistsFromTracks(Object.values(artistMap));
 
-    console.log("[v0] Search completed for:", query);
     setHasSearched(true);
     setIsSearching(false);
   };
@@ -97,11 +125,9 @@ export function SearchInterface() {
       title: track.title,
       artist: track.artist,
       mp3Url: track.mp3Url,
-      duration:
-        Number.parseInt(track.duration.split(":")[0]) * 60 +
-        Number.parseInt(track.duration.split(":")[1]),
+      duration: track.duration || "--:--",
       genre: track.genre,
-      coverArt: track.coverArt,
+      coverArt: getRandomUnsplashImage(),
     };
 
     actions.addTrack(trackData, {
@@ -110,6 +136,24 @@ export function SearchInterface() {
       id: track.id.toString(),
     });
   };
+
+  useEffect(() => {
+    async function fetchTracks() {
+      try {
+        const response = await fetch("/api/music/feed?limit=50&offset=0");
+        const data = await response.json();
+        if (data.success) {
+          setTracksFromApi(data.items);
+        } else {
+          console.error("Failed to fetch tracks from API");
+        }
+      } catch (error) {
+        console.error("Error fetching tracks from API:", error);
+      }
+    }
+
+    fetchTracks();
+  }, []);
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -151,87 +195,107 @@ export function SearchInterface() {
               <TabsTrigger value="artists" className="flex-1 sm:flex-none">
                 Artists
               </TabsTrigger>
-              <TabsTrigger value="albums" className="flex-1 sm:flex-none">
+              {/* <TabsTrigger value="albums" className="flex-1 sm:flex-none">
                 Albums
-              </TabsTrigger>
+              </TabsTrigger> */}
             </TabsList>
           </div>
 
           <TabsContent value="tracks" className="space-y-3 md:space-y-4">
-            {mockResults.tracks.map((track) => (
-              <Card key={track.id}>
-                <CardContent className="p-3 md:p-4">
-                  <div className="flex items-center gap-3 md:gap-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                      <Music className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <h3 className="font-semibold truncate text-sm md:text-base">
-                        {track.title}
-                      </h3>
-                      <p className="text-muted-foreground truncate text-xs md:text-sm">
-                        {track.artist}
-                      </p>
-                      <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full">
-                        {track.genre}
-                      </span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 shrink-0">
-                      <span className="text-xs md:text-sm text-muted-foreground hidden sm:block">
-                        {track.duration}
-                      </span>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm">
-                          <Heart className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handlePlayTrack(track)}
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
+            {filteredTracks.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                No tracks found for "{query}"
+              </div>
+            ) : (
+              filteredTracks.map((track) => (
+                <Card key={track.id}>
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <div className="w-10 h-10 md:w-12 md:h-12 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                        <Music className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
                       </div>
-                      <span className="text-xs text-muted-foreground sm:hidden">
-                        {track.duration}
-                      </span>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <h3 className="font-semibold truncate text-sm md:text-base">
+                          {track.title}
+                        </h3>
+                        <p className="text-muted-foreground truncate text-xs md:text-sm">
+                          {track.artist}
+                        </p>
+                        <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full">
+                          {track.genre}
+                        </span>
+                      </div>
+                      <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 shrink-0">
+                        <span className="text-xs md:text-sm text-muted-foreground hidden sm:block">
+                          {track.duration || "--:--"}
+                        </span>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm">
+                            <Heart className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handlePlayTrack(track)}
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <span className="text-xs text-muted-foreground sm:hidden">
+                          {track.duration || "--:--"}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </TabsContent>
 
+          {/* Artists tab: show unique artists from filtered tracks */}
           <TabsContent value="artists" className="space-y-3 md:space-y-4">
-            {mockResults.artists.map((artist) => (
-              <Card key={artist.id}>
-                <CardContent className="p-3 md:p-4">
-                  <div className="flex items-center gap-3 md:gap-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-muted rounded-full flex items-center justify-center shrink-0">
-                      <User className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
+            {artistsFromTracks.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                No artists found for "{query}"
+              </div>
+            ) : (
+              artistsFromTracks.map((artist) => (
+                <Card key={artist.name}>
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <div className="w-10 h-10 md:w-12 md:h-12 bg-muted rounded-full flex items-center justify-center shrink-0">
+                        {/* <User className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" /> */}
+                        <Image
+                          src={getRandomUnsplashImage()}
+                          alt={artist.name}
+                          width={64}
+                          height={64}
+                          className="h-10 w-10 md:h-12 md:w-12 object-cover rounded-full"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <h3 className="font-semibold truncate text-sm md:text-base">
+                          {artist.name}
+                        </h3>
+                        <p className="text-muted-foreground text-xs md:text-sm">
+                          {artist.genre}
+                        </p>
+                        <p className="text-xs md:text-sm text-muted-foreground">
+                          {artist.tracks} tracks
+                        </p>
+                      </div>
+                      {/* <Button
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 bg-transparent"
+                      >
+                        Follow
+                      </Button> */}
                     </div>
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <h3 className="font-semibold truncate text-sm md:text-base">
-                        {artist.name}
-                      </h3>
-                      <p className="text-muted-foreground text-xs md:text-sm">
-                        {artist.genre}
-                      </p>
-                      <p className="text-xs md:text-sm text-muted-foreground">
-                        {artist.tracks} tracks
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="shrink-0 bg-transparent"
-                    >
-                      Follow
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </TabsContent>
 
           <TabsContent value="albums" className="space-y-3 md:space-y-4">
