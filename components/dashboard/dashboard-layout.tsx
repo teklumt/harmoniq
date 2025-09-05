@@ -15,7 +15,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen  bg-background">
       <div className="flex">
         <Button
           variant="ghost"
