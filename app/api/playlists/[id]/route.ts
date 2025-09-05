@@ -26,10 +26,21 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     console.log(" " " Get playlist request:", {
       playlistId,
+      trackId,
+      userId,
       timestamp: new Date().toISOString(),
-    })
+    });
 
-    const playlist = mockPlaylists.find((p) => p.id === playlistId)
+    if (!trackId) {
+      return NextResponse.json(
+        { success: false, message: "Track ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const playlist = await prisma.playlist.findFirst({
+      where: { id: playlistId, userId },
+    });
 
     if (!playlist) {
       return NextResponse.json({ success: false, message: "Playlist not found" }, { status: 404 })
@@ -71,21 +82,46 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({
       success: true,
-      playlist: mockPlaylists[playlistIndex],
-      message: "Playlist updated successfully",
-    })
+      track: {
+        id: playlistTrack.music.id,
+        title: playlistTrack.music.title,
+        artist: playlistTrack.music.author,
+        mp3Url: playlistTrack.music.url,
+        duration: 0,
+        genre: playlistTrack.music.genre || "Unknown",
+        coverArt: "/placeholder-logo.png",
+      },
+      message: "Track added to playlist",
+    });
   } catch (error) {
     console.error(" " " Update playlist error:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const playlistId = Number.parseInt(params.id)
+    const session = await auth.api.getSession({ headers: await headers() });
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    const playlistId = params.id;
+    const { searchParams } = new URL(request.url);
+    const trackId = searchParams.get("trackId");
 
     console.log(" " " Delete playlist request:", {
       playlistId,
+      trackId,
+      userId,
       timestamp: new Date().toISOString(),
     })
 
@@ -100,8 +136,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({
       success: true,
-      message: "Playlist deleted successfully",
-    })
+      message: "Track removed from playlist",
+    });
   } catch (error) {
     console.error(" " " Delete playlist error:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
