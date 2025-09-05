@@ -112,7 +112,7 @@ export function PlaylistGrid() {
     e.preventDefault();
     setIsCreating(true);
 
-    console.log("[v0] Creating playlist:", newPlaylist);
+    console.log(" " " Creating playlist:", newPlaylist);
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -129,11 +129,11 @@ export function PlaylistGrid() {
     setNewPlaylist({ name: "", description: "" });
     setIsCreating(false);
 
-    console.log("[v0] Playlist created:", playlist);
+    console.log(" " " Playlist created:", playlist);
   };
 
   const handleSpotifyImport = () => {
-    console.log("[v0] Spotify import initiated (placeholder)");
+    console.log(" " " Spotify import initiated (placeholder)");
     alert(
       "Spotify playlist import would be implemented here. This would connect to Spotify API to import playlists."
     );

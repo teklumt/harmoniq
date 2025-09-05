@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       message: "Track uploaded successfully",
     });
   } catch (error) {
-    console.error("[v0] Music upload error:", error);
+    console.error(" " " Music upload error:", error);
 
     return NextResponse.json(
       { success: false, message: "Internal server error" },

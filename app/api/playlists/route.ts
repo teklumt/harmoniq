@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get("userId") || "user_1"
 
-    console.log("[v0] Get playlists request:", {
+    console.log(" " " Get playlists request:", {
       userId,
       timestamp: new Date().toISOString(),
     })
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       count: userPlaylists.length,
     })
   } catch (error) {
-    console.error("[v0] Get playlists error:", error)
+    console.error(" " " Get playlists error:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, description, userId = "user_1" } = body
 
-    console.log("[v0] Create playlist request:", {
+    console.log(" " " Create playlist request:", {
       name,
       description,
       userId,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     mockPlaylists.push(newPlaylist)
 
-    console.log("[v0] Playlist created:", newPlaylist)
+    console.log(" " " Playlist created:", newPlaylist)
 
     return NextResponse.json({
       success: true,
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       message: "Playlist created successfully",
     })
   } catch (error) {
-    console.error("[v0] Create playlist error:", error)
+    console.error(" " " Create playlist error:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }

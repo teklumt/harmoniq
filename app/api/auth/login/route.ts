@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const { email, password } = body
 
     // Log the login attempt
-    console.log("[v0] Login attempt:", {
+    console.log(" " " Login attempt:", {
       email,
       timestamp: new Date().toISOString(),
       userAgent: request.headers.get("user-agent"),
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         token: "mock-jwt-token-" + Date.now(),
       }
 
-      console.log("[v0] Login successful:", { userId: mockUser.id, email })
+      console.log(" " " Login successful:", { userId: mockUser.id, email })
 
       return NextResponse.json({
         success: true,
@@ -30,12 +30,12 @@ export async function POST(request: NextRequest) {
         message: "Login successful",
       })
     } else {
-      console.log("[v0] Login failed: Missing credentials")
+      console.log(" " " Login failed: Missing credentials")
 
       return NextResponse.json({ success: false, message: "Invalid credentials" }, { status: 400 })
     }
   } catch (error) {
-    console.error("[v0] Login error:", error)
+    console.error(" " " Login error:", error)
 
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }

@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const { email } = body
 
     // Log the forgot password attempt
-    console.log("[v0] Forgot password request:", {
+    console.log(" " " Forgot password request:", {
       email,
       timestamp: new Date().toISOString(),
       userAgent: request.headers.get("user-agent"),
@@ -14,19 +14,19 @@ export async function POST(request: NextRequest) {
 
     // Simulate sending reset email
     if (email) {
-      console.log("[v0] Password reset email sent to:", email)
+      console.log(" " " Password reset email sent to:", email)
 
       return NextResponse.json({
         success: true,
         message: "Password reset email sent",
       })
     } else {
-      console.log("[v0] Forgot password failed: Missing email")
+      console.log(" " " Forgot password failed: Missing email")
 
       return NextResponse.json({ success: false, message: "Email is required" }, { status: 400 })
     }
   } catch (error) {
-    console.error("[v0] Forgot password error:", error)
+    console.error(" " " Forgot password error:", error)
 
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }

@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[v0] Music feed error:", error);
+    console.error(" " " Music feed error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
       { status: 500 }

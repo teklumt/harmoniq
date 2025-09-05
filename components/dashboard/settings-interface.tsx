@@ -77,12 +77,12 @@ export function SettingsInterface() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    console.log("[v0] Saving settings:", settings);
+    console.log(" " " Saving settings:", settings);
 
     // Simulate save delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    console.log("[v0] Settings saved successfully");
+    console.log(" " " Settings saved successfully");
     setIsSaving(false);
   };
 

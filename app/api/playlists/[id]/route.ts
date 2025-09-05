@@ -24,7 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   try {
     const playlistId = Number.parseInt(params.id)
 
-    console.log("[v0] Get playlist request:", {
+    console.log(" " " Get playlist request:", {
       playlistId,
       timestamp: new Date().toISOString(),
     })
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       playlist,
     })
   } catch (error) {
-    console.error("[v0] Get playlist error:", error)
+    console.error(" " " Get playlist error:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }
@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const body = await request.json()
     const { name, description } = body
 
-    console.log("[v0] Update playlist request:", {
+    console.log(" " " Update playlist request:", {
       playlistId,
       name,
       description,
@@ -67,7 +67,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (name) mockPlaylists[playlistIndex].name = name
     if (description !== undefined) mockPlaylists[playlistIndex].description = description
 
-    console.log("[v0] Playlist updated:", mockPlaylists[playlistIndex])
+    console.log(" " " Playlist updated:", mockPlaylists[playlistIndex])
 
     return NextResponse.json({
       success: true,
@@ -75,7 +75,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       message: "Playlist updated successfully",
     })
   } catch (error) {
-    console.error("[v0] Update playlist error:", error)
+    console.error(" " " Update playlist error:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }
@@ -84,7 +84,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   try {
     const playlistId = Number.parseInt(params.id)
 
-    console.log("[v0] Delete playlist request:", {
+    console.log(" " " Delete playlist request:", {
       playlistId,
       timestamp: new Date().toISOString(),
     })
@@ -96,14 +96,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ success: false, message: "Playlist not found" }, { status: 404 })
     }
 
-    console.log("[v0] Playlist deleted:", { playlistId })
+    console.log(" " " Playlist deleted:", { playlistId })
 
     return NextResponse.json({
       success: true,
       message: "Playlist deleted successfully",
     })
   } catch (error) {
-    console.error("[v0] Delete playlist error:", error)
+    console.error(" " " Delete playlist error:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }

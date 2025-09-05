@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const { name, email, password, acceptTerms } = body
 
     // Log the registration attempt
-    console.log("[v0] Registration attempt:", {
+    console.log(" " " Registration attempt:", {
       name,
       email,
       acceptTerms,
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         token: "mock-jwt-token-" + Date.now(),
       }
 
-      console.log("[v0] Registration successful:", { userId: mockUser.id, email })
+      console.log(" " " Registration successful:", { userId: mockUser.id, email })
 
       return NextResponse.json({
         success: true,
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         message: "Account created successfully",
       })
     } else {
-      console.log("[v0] Registration failed: Missing or invalid data")
+      console.log(" " " Registration failed: Missing or invalid data")
 
       return NextResponse.json(
         { success: false, message: "Please fill in all required fields and accept terms" },
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       )
     }
   } catch (error) {
-    console.error("[v0] Registration error:", error)
+    console.error(" " " Registration error:", error)
 
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }

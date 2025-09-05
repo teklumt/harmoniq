@@ -69,11 +69,11 @@ export function UploadForm() {
         body: data,
       });
       const result = await response.json();
-      console.log("[v0] Music upload response:", result);
+      console.log(" " " Music upload response:", result);
 
       setIsUploaded(result.success);
     } catch (error) {
-      console.error("[v0] Upload error:", error);
+      console.error(" " " Upload error:", error);
     } finally {
       setIsUploading(false);
     }

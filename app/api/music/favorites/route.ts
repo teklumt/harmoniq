@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[v0] Get favorites error:", error);
+    console.error(" " " Get favorites error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
       { status: 500 }
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
       message: "Track added to favorites",
     });
   } catch (error) {
-    console.error("[v0] Add favorite error:", error);
+    console.error(" " " Add favorite error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
       { status: 500 }
@@ -191,7 +191,7 @@ export async function DELETE(request: NextRequest) {
       message: "Track removed from favorites",
     });
   } catch (error) {
-    console.error("[v0] Remove favorite error:", error);
+    console.error(" " " Remove favorite error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
       { status: 500 }

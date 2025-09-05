@@ -54,7 +54,7 @@ export function MusicPlayer({
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
 
-    console.log("[v0] Loading track:", currentTrack.title, currentTrack.mp3Url);
+    console.log(" " " Loading track:", currentTrack.title, currentTrack.mp3Url);
     //audio.src = "https://res.cloudinary.com/dtjzf1zja/raw/upload/v1757024235/music/d5yw11uda4eeb6aqefce";
     audio.src = currentTrack.mp3Url;
     audio.load();

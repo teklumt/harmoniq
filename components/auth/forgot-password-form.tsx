@@ -27,13 +27,13 @@ export function ForgotPasswordForm() {
       })
 
       const result = await response.json()
-      console.log("[v0] Forgot password response:", result)
+      console.log(" " " Forgot password response:", result)
 
       if (response.ok) {
         setIsSubmitted(true)
       }
     } catch (error) {
-      console.error("[v0] Forgot password error:", error)
+      console.error(" " " Forgot password error:", error)
     } finally {
       setIsLoading(false)
     }

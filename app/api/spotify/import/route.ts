@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { playlistUrl, accessToken } = body
 
-    console.log("[v0] Spotify import request:", {
+    console.log(" " " Spotify import request:", {
       playlistUrl,
       hasAccessToken: !!accessToken,
       timestamp: new Date().toISOString(),
@@ -13,11 +13,11 @@ export async function POST(request: NextRequest) {
     })
 
     // Simulate Spotify API integration
-    console.log("[v0] Simulating Spotify API call...")
-    console.log("[v0] - Authenticating with Spotify")
-    console.log("[v0] - Fetching playlist metadata")
-    console.log("[v0] - Retrieving track list")
-    console.log("[v0] - Converting to Harmoniq format")
+    console.log(" " " Simulating Spotify API call...")
+    console.log(" " " - Authenticating with Spotify")
+    console.log(" " " - Fetching playlist metadata")
+    console.log(" " " - Retrieving track list")
+    console.log(" " " - Converting to Harmoniq format")
 
     // Mock successful import
     const mockImportedPlaylist = {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       source: "spotify",
     }
 
-    console.log("[v0] Spotify import successful:", {
+    console.log(" " " Spotify import successful:", {
       playlistId: mockImportedPlaylist.id,
       trackCount: mockImportedPlaylist.tracks.length,
     })
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       message: `Successfully imported playlist with ${mockImportedPlaylist.tracks.length} tracks`,
     })
   } catch (error) {
-    console.error("[v0] Spotify import error:", error)
+    console.error(" " " Spotify import error:", error)
 
     return NextResponse.json(
       {

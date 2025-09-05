@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get("q")
     const type = searchParams.get("type") || "all"
 
-    console.log("[v0] Music search request:", {
+    console.log(" " " Music search request:", {
       query,
       type,
       timestamp: new Date().toISOString(),
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       ),
     }
 
-    console.log("[v0] Search results:", {
+    console.log(" " " Search results:", {
       query,
       tracksFound: results.tracks.length,
       artistsFound: results.artists.length,
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       query,
     })
   } catch (error) {
-    console.error("[v0] Music search error:", error)
+    console.error(" " " Music search error:", error)
 
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
