@@ -1,6 +1,7 @@
 # Harmoniq - Music Streaming Service
 
-<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/b9ea7f02-bf41-44a2-b2f5-b6a401c97719" />
+<img width="1338" height="621" alt="image_2025-09-05_15-55-51" src="https://github.com/user-attachments/assets/6e858466-9399-485f-bfbf-0c574b1d2a56" />
+
 
 ## Project Overview
 
