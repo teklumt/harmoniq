@@ -110,6 +110,9 @@ utils/              # Utility functions
 ---
 
 ## Screenshots
+<img width="1342" height="631" alt="image_2025-09-05_16-26-39" src="https://github.com/user-attachments/assets/e76d3e97-49e4-42b7-81af-545889dd6e04" />
+<img width="1347" height="616" alt="image_2025-09-05_16-28-33" src="https://github.com/user-attachments/assets/3f68130c-a83e-4729-88a5-109e3177a1bb" />
+<img width="1349" height="627" alt="image_2025-09-05_16-29-04" src="https://github.com/user-attachments/assets/cdeb52d3-81b2-43ed-bff2-379ac35d4a80" />
 
 
 ## Contact
