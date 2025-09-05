@@ -1,22 +1,29 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Bell, Shield, Music, Globe, Save, Camera } from "lucide-react"
-
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User, Bell, Shield, Music, Globe, Save, Camera } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { getRandomUnsplashImage } from "@/utils/images";
 export function SettingsInterface() {
   const [settings, setSettings] = useState({
     // Profile settings
-    displayName: "John Doe",
-    email: "john.doe@example.com",
-    bio: "Music enthusiast and creator",
+    displayName: "",
+    email: "",
+    bio: "",
 
     // Notification settings
     emailNotifications: true,
@@ -37,24 +44,51 @@ export function SettingsInterface() {
     // Appearance settings
     language: "en",
     region: "US",
-  })
+  });
 
-  const [isSaving, setIsSaving] = useState(false)
+  useEffect(() => {
+    let isMounted = true;
+    authClient
+      .getSession()
+      .then((result: any) => {
+        if (isMounted) {
+          const user = result?.user || result?.data?.user;
+          if (user) {
+            setSettings((prev) => ({
+              ...prev,
+              displayName: user.name || "",
+              email: user.email || "",
+              bio: "", // No bio in session, set to empty string
+            }));
+          }
+        }
+      })
+      .catch((err: any) => {
+        if (isMounted) {
+          // Optionally handle error
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
-    setIsSaving(true)
-    console.log("[v0] Saving settings:", settings)
+    setIsSaving(true);
+    console.log("[v0] Saving settings:", settings);
 
     // Simulate save delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    console.log("[v0] Settings saved successfully")
-    setIsSaving(false)
-  }
+    console.log("[v0] Settings saved successfully");
+    setIsSaving(false);
+  };
 
   const updateSetting = (key: string, value: any) => {
-    setSettings((prev) => ({ ...prev, [key]: value }))
-  }
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
 
   return (
     <div className="space-y-4 md:space-y-6 max-w-4xl">
@@ -70,15 +104,24 @@ export function SettingsInterface() {
           {/* Profile Picture */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <Avatar className="h-16 w-16 md:h-20 md:w-20">
-              <AvatarImage src="/placeholder.svg?height=80&width=80" />
+              <AvatarImage
+                src={getRandomUnsplashImage()}
+                className="rounded-full"
+              />
               <AvatarFallback className="text-lg md:text-xl">JD</AvatarFallback>
             </Avatar>
             <div className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full sm:w-auto bg-transparent">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto bg-transparent"
+              >
                 <Camera className="mr-2 h-4 w-4" />
                 Change Photo
               </Button>
-              <p className="text-xs md:text-sm text-muted-foreground">JPG, PNG or GIF. Max size 2MB.</p>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                JPG, PNG or GIF. Max size 2MB.
+              </p>
             </div>
           </div>
 
@@ -134,12 +177,18 @@ export function SettingsInterface() {
         <CardContent className="p-4 md:p-6 pt-0 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div className="space-y-1">
-              <Label className="text-sm md:text-base">Email Notifications</Label>
-              <p className="text-xs md:text-sm text-muted-foreground">Receive updates via email</p>
+              <Label className="text-sm md:text-base">
+                Email Notifications
+              </Label>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                Receive updates via email
+              </p>
             </div>
             <Switch
               checked={settings.emailNotifications}
-              onCheckedChange={(checked) => updateSetting("emailNotifications", checked)}
+              onCheckedChange={(checked) =>
+                updateSetting("emailNotifications", checked)
+              }
             />
           </div>
 
@@ -148,11 +197,15 @@ export function SettingsInterface() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div className="space-y-1">
               <Label className="text-sm md:text-base">Push Notifications</Label>
-              <p className="text-xs md:text-sm text-muted-foreground">Get notified on your device</p>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                Get notified on your device
+              </p>
             </div>
             <Switch
               checked={settings.pushNotifications}
-              onCheckedChange={(checked) => updateSetting("pushNotifications", checked)}
+              onCheckedChange={(checked) =>
+                updateSetting("pushNotifications", checked)
+              }
             />
           </div>
 
@@ -161,11 +214,15 @@ export function SettingsInterface() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div className="space-y-1">
               <Label className="text-sm md:text-base">Playlist Updates</Label>
-              <p className="text-xs md:text-sm text-muted-foreground">When someone updates shared playlists</p>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                When someone updates shared playlists
+              </p>
             </div>
             <Switch
               checked={settings.playlistUpdates}
-              onCheckedChange={(checked) => updateSetting("playlistUpdates", checked)}
+              onCheckedChange={(checked) =>
+                updateSetting("playlistUpdates", checked)
+              }
             />
           </div>
 
@@ -174,11 +231,15 @@ export function SettingsInterface() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div className="space-y-1">
               <Label className="text-sm md:text-base">New Followers</Label>
-              <p className="text-xs md:text-sm text-muted-foreground">When someone follows you</p>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                When someone follows you
+              </p>
             </div>
             <Switch
               checked={settings.newFollowers}
-              onCheckedChange={(checked) => updateSetting("newFollowers", checked)}
+              onCheckedChange={(checked) =>
+                updateSetting("newFollowers", checked)
+              }
             />
           </div>
         </CardContent>
@@ -197,7 +258,9 @@ export function SettingsInterface() {
             <Label className="text-sm md:text-base">Profile Visibility</Label>
             <Select
               value={settings.profileVisibility}
-              onValueChange={(value) => updateSetting("profileVisibility", value)}
+              onValueChange={(value) =>
+                updateSetting("profileVisibility", value)
+              }
             >
               <SelectTrigger className="text-sm md:text-base">
                 <SelectValue />
@@ -214,12 +277,18 @@ export function SettingsInterface() {
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div className="space-y-1">
-              <Label className="text-sm md:text-base">Show Listening Activity</Label>
-              <p className="text-xs md:text-sm text-muted-foreground">Let others see what you're listening to</p>
+              <Label className="text-sm md:text-base">
+                Show Listening Activity
+              </Label>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                Let others see what you're listening to
+              </p>
             </div>
             <Switch
               checked={settings.showListeningActivity}
-              onCheckedChange={(checked) => updateSetting("showListeningActivity", checked)}
+              onCheckedChange={(checked) =>
+                updateSetting("showListeningActivity", checked)
+              }
             />
           </div>
 
@@ -228,11 +297,15 @@ export function SettingsInterface() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div className="space-y-1">
               <Label className="text-sm md:text-base">Allow Messages</Label>
-              <p className="text-xs md:text-sm text-muted-foreground">Receive messages from other users</p>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                Receive messages from other users
+              </p>
             </div>
             <Switch
               checked={settings.allowMessages}
-              onCheckedChange={(checked) => updateSetting("allowMessages", checked)}
+              onCheckedChange={(checked) =>
+                updateSetting("allowMessages", checked)
+              }
             />
           </div>
         </CardContent>
@@ -249,7 +322,10 @@ export function SettingsInterface() {
         <CardContent className="p-4 md:p-6 pt-0 space-y-4">
           <div className="space-y-2">
             <Label className="text-sm md:text-base">Audio Quality</Label>
-            <Select value={settings.audioQuality} onValueChange={(value) => updateSetting("audioQuality", value)}>
+            <Select
+              value={settings.audioQuality}
+              onValueChange={(value) => updateSetting("audioQuality", value)}
+            >
               <SelectTrigger className="text-sm md:text-base">
                 <SelectValue />
               </SelectTrigger>
@@ -270,7 +346,10 @@ export function SettingsInterface() {
                 Automatically play similar songs when your music ends
               </p>
             </div>
-            <Switch checked={settings.autoplay} onCheckedChange={(checked) => updateSetting("autoplay", checked)} />
+            <Switch
+              checked={settings.autoplay}
+              onCheckedChange={(checked) => updateSetting("autoplay", checked)}
+            />
           </div>
 
           <Separator />
@@ -278,9 +357,14 @@ export function SettingsInterface() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div className="space-y-1">
               <Label className="text-sm md:text-base">Crossfade</Label>
-              <p className="text-xs md:text-sm text-muted-foreground">Smooth transition between songs</p>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                Smooth transition between songs
+              </p>
             </div>
-            <Switch checked={settings.crossfade} onCheckedChange={(checked) => updateSetting("crossfade", checked)} />
+            <Switch
+              checked={settings.crossfade}
+              onCheckedChange={(checked) => updateSetting("crossfade", checked)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -297,7 +381,10 @@ export function SettingsInterface() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm md:text-base">Language</Label>
-              <Select value={settings.language} onValueChange={(value) => updateSetting("language", value)}>
+              <Select
+                value={settings.language}
+                onValueChange={(value) => updateSetting("language", value)}
+              >
                 <SelectTrigger className="text-sm md:text-base">
                   <SelectValue />
                 </SelectTrigger>
@@ -312,7 +399,10 @@ export function SettingsInterface() {
 
             <div className="space-y-2">
               <Label className="text-sm md:text-base">Region</Label>
-              <Select value={settings.region} onValueChange={(value) => updateSetting("region", value)}>
+              <Select
+                value={settings.region}
+                onValueChange={(value) => updateSetting("region", value)}
+              >
                 <SelectTrigger className="text-sm md:text-base">
                   <SelectValue />
                 </SelectTrigger>
@@ -330,11 +420,15 @@ export function SettingsInterface() {
 
       {/* Save Button */}
       <div className="flex justify-end pt-4">
-        <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
+        <Button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="w-full sm:w-auto"
+        >
           <Save className="mr-2 h-4 w-4" />
           {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
     </div>
-  )
+  );
 }
